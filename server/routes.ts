@@ -189,7 +189,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           coverUrl = await uploadThumbnailToSupabase(thumbnailBuffer, thumbnailFileName);
         } catch (error) {
           console.error('Thumbnail generation failed:', error);
-          // Continue without thumbnail
+          // Use fallback PDF image
+          coverUrl = 'https://cdn.mrfrankofc.gleeze.com/pdf_image.png';
         }
       }
 

@@ -1,12 +1,13 @@
 
-import pdf from 'pdf-parse';
 import sharp from 'sharp';
-import { createCanvas } from 'canvas';
+
+// Use dynamic import for pdf-parse since it's a CommonJS module
+const pdfParse = require('pdf-parse');
 
 export async function generatePdfThumbnail(pdfBuffer: Buffer): Promise<Buffer> {
   try {
     // Parse the PDF
-    const data = await pdf(pdfBuffer);
+    const data = await pdfParse(pdfBuffer);
     
     // For now, create a simple placeholder thumbnail with PDF info
     // Note: Full PDF rendering requires additional dependencies like pdf-poppler

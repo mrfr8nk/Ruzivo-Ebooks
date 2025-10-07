@@ -1,8 +1,9 @@
 
-import { Download, TrendingUp, BookOpen, Eye } from "lucide-react";
+import { Download, TrendingUp, BookOpen, Eye, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { downloadBook } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
@@ -33,6 +34,7 @@ export default function BookCard({ id, title, author, level, form, coverUrl, dow
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isHovered, setIsHovered] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
   const handleDownload = async () => {
     try {
@@ -80,6 +82,15 @@ export default function BookCard({ id, title, author, level, form, coverUrl, dow
         {/* Overlay on hover */}
         <div className={`absolute inset-0 bg-gradient-to-t from-sky-900/90 via-sky-900/50 to-transparent transition-opacity duration-300 ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
           <div className="absolute bottom-4 left-4 right-4 flex gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setShowPreview(true)}
+              className="flex-1 bg-white/90 hover:bg-white text-sky-600 border-sky-200"
+            >
+              <Eye className="w-4 h-4 mr-1" />
+              Preview
+            </Button>
             <Button
               size="sm"
               onClick={handleDownload}
@@ -156,6 +167,52 @@ export default function BookCard({ id, title, author, level, form, coverUrl, dow
           </Button>
         </div>
       </CardContent>
+
+      {/* Preview Dialog */}
+      <Dialog open={showPreview} onOpenChange={setShowPreview}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-2xl">{title}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="flex gap-4">
+              {coverUrl ? (
+                <img src={coverUrl} alt={title} className="w-32 h-48 object-cover rounded-lg" />
+              ) : (
+                <div className="w-32 h-48 bg-gradient-to-br from-sky-100 to-blue-100 rounded-lg flex items-center justify-center">
+                  <BookOpen className="w-12 h-12 text-sky-600" />
+                </div>
+              )}
+              <div className="flex-1 space-y-2">
+                <p className="text-sm text-muted-foreground">Author: <span className="font-semibold">{author}</span></p>
+                {curriculum && <p className="text-sm text-muted-foreground">Curriculum: <span className="font-semibold">{curriculum}</span></p>}
+                <p className="text-sm text-muted-foreground">Level: <span className="font-semibold">{level}</span></p>
+                <p className="text-sm text-muted-foreground">Form: <span className="font-semibold">{form}</span></p>
+                {uploadedBy && <p className="text-sm text-muted-foreground">Uploaded by: <span className="font-semibold">{uploadedBy}</span></p>}
+                {fileSize && (
+                  <p className="text-sm text-muted-foreground">Size: <span className="font-semibold">{formatFileSize(fileSize)}</span></p>
+                )}
+                <div className="flex items-center gap-2 pt-2">
+                  <Badge variant="outline" className="gap-1">
+                    <Download className="w-3 h-3" />
+                    {downloads} downloads
+                  </Badge>
+                  {isTrending && (
+                    <Badge className="bg-orange-500 gap-1">
+                      <TrendingUp className="w-3 h-3" />
+                      Trending
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            </div>
+            <Button onClick={handleDownload} className="w-full">
+              <Download className="w-4 h-4 mr-2" />
+              Download Now
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }

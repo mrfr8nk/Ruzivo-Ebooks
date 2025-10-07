@@ -1,13 +1,16 @@
-
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { Search, Upload, Menu, X, Moon, Sun, BookOpen, Settings, User, LogIn } from "lucide-react";
+import { Search, Upload, Menu, X, Moon, Sun, BookOpen, Settings, User, LogIn, LogOut, UserPlus, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Navbar() {
-  const [location] = useLocation();
+  const [, setLocation] = useLocation();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
 
@@ -20,6 +23,30 @@ export default function Navbar() {
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
     document.documentElement.classList.toggle("dark");
+  };
+
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      queryClient.clear();
+      toast({
+        title: "Logged out",
+        description: "You have been logged out successfully",
+      });
+      setMobileMenuOpen(false);
+      setLocation('/');
+    } catch (error) {
+      toast({
+        title: "Logout failed",
+        description: "Failed to logout",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const navigateTo = (path: string) => {
+    setMobileMenuOpen(false);
+    setLocation(path);
   };
 
   return (
@@ -77,7 +104,7 @@ export default function Navbar() {
             >
               {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </Button>
-            
+
             {user ? (
               <>
                 <Link href="/dashboard">
@@ -110,17 +137,102 @@ export default function Navbar() {
             )}
           </div>
 
-          <Button
-            size="icon"
-            variant="ghost"
-            className="md:hidden text-sky-200 hover:text-white hover:bg-white/10 rounded-xl"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            data-testid="button-menu-toggle"
-          >
-            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </Button>
+          {/* Mobile Menu Trigger */}
+          <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+            <SheetTrigger asChild>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="md:hidden text-sky-200 hover:text-white hover:bg-white/10 rounded-xl"
+                data-testid="button-menu-toggle"
+              >
+                <Menu className="w-6 h-6" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-64">
+              <SheetHeader>
+                <SheetTitle>Menu</SheetTitle>
+              </SheetHeader>
+              <div className="flex flex-col gap-3 mt-6">
+                {user ? (
+                  <>
+                    <div className="pb-3 border-b border-sky-200 dark:border-sky-700">
+                      <p className="text-sm text-muted-foreground">Logged in as</p>
+                      <p className="font-semibold text-sky-600 dark:text-sky-400">{user.username}</p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start gap-2"
+                      onClick={() => navigateTo('/dashboard')}
+                    >
+                      <User className="w-4 h-4" />
+                      Dashboard
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start gap-2"
+                      onClick={() => navigateTo('/upload')}
+                    >
+                      <Upload className="w-4 h-4" />
+                      Upload Book
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start gap-2"
+                      onClick={() => navigateTo('/admin')}
+                    >
+                      <Shield className="w-4 h-4" />
+                      Admin Panel
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      className="w-full justify-start gap-2 mt-4"
+                      onClick={handleLogout}
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Logout
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start gap-2"
+                      onClick={() => navigateTo('/login')}
+                    >
+                      <LogIn className="w-4 h-4" />
+                      Login
+                    </Button>
+                    <Button
+                      className="w-full justify-start gap-2 bg-gradient-to-r from-sky-500 to-blue-600"
+                      onClick={() => navigateTo('/signup')}
+                    >
+                      <UserPlus className="w-4 h-4" />
+                      Sign Up
+                    </Button>
+                    <Button
+                      className="w-full justify-start gap-2 bg-gradient-to-r from-blue-500 to-purple-600"
+                      onClick={() => navigateTo('/upload')}
+                    >
+                      <Upload className="w-4 h-4" />
+                      Upload Book
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start gap-2"
+                      onClick={() => navigateTo('/admin')}
+                    >
+                      <Shield className="w-4 h-4" />
+                      Admin Panel
+                    </Button>
+                  </>
+                )}
+              </div>
+            </SheetContent>
+          </Sheet>
         </div>
 
+        {/* Mobile Search Bar (appears when mobile menu is open) */}
         {mobileMenuOpen && (
           <div className="md:hidden py-4 border-t border-sky-500/20 animate-slide-in-down">
             <div className="flex flex-col gap-3">
@@ -146,12 +258,6 @@ export default function Navbar() {
                 <Link href="/developer" className="flex-1">
                   <Button variant="outline" className="w-full gap-2 border-sky-400/30 text-sky-200 hover:bg-white/10 rounded-xl" data-testid="button-contact-mobile">
                     Contact
-                  </Button>
-                </Link>
-                <Link href="/upload" className="flex-1">
-                  <Button className="w-full gap-2 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 rounded-xl font-semibold" data-testid="button-upload-mobile">
-                    <Upload className="w-4 h-4" />
-                    Upload
                   </Button>
                 </Link>
               </div>
