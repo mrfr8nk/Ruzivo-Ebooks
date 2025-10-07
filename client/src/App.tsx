@@ -13,6 +13,17 @@ import Dashboard from "@/pages/Dashboard";
 import NotFound from "@/pages/not-found";
 import Admin from "@/pages/Admin";
 import Developer from "@/pages/Developer";
+import Donations from "@/pages/Donations";
+import Contact from "@/pages/Contact";
+import About from "@/pages/About";
+import PrivacyPolicy from "@/pages/PrivacyPolicy";
+import TermsOfService from "@/pages/TermsOfService";
+import OLevel from "@/pages/OLevel";
+import ALevel from "@/pages/ALevel";
+import PastPapers from "@/pages/PastPapers";
+import StudyGuides from "@/pages/StudyGuides";
+import Syllabus from "@/pages/Syllabus";
+import FAQ from "@/pages/FAQ";
 
 function Router() {
   return (
@@ -24,6 +35,17 @@ function Router() {
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/admin" component={Admin} />
       <Route path="/developer" component={Developer} />
+      <Route path="/donations" component={Donations} />
+      <Route path="/contact" component={Contact} />
+      <Route path="/about" component={About} />
+      <Route path="/privacy" component={PrivacyPolicy} />
+      <Route path="/terms" component={TermsOfService} />
+      <Route path="/o-level" component={OLevel} />
+      <Route path="/a-level" component={ALevel} />
+      <Route path="/past-papers" component={PastPapers} />
+      <Route path="/study-guides" component={StudyGuides} />
+      <Route path="/syllabus" component={Syllabus} />
+      <Route path="/faq" component={FAQ} />
       <Route component={NotFound} />
     </Switch>
   );

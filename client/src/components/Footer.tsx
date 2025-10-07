@@ -66,10 +66,11 @@ export default function Footer() {
               {[
                 { to: "/", label: "Home", testid: "link-footer-home" },
                 { to: "/upload", label: "Upload Book", testid: "link-footer-upload" },
-                { to: "/developer", label: "Contact Us", testid: "link-footer-developer" },
-                { to: "#", label: "About", testid: "link-footer-about" },
-                { to: "#", label: "Privacy Policy", testid: "link-footer-privacy" },
-                { to: "#", label: "Terms of Service", testid: "link-footer-terms" }
+                { to: "/contact", label: "Contact Us", testid: "link-footer-contact" },
+                { to: "/about", label: "About", testid: "link-footer-about" },
+                { to: "/privacy", label: "Privacy Policy", testid: "link-footer-privacy" },
+                { to: "/terms", label: "Terms of Service", testid: "link-footer-terms" },
+                { to: "/donations", label: "Donate", testid: "link-footer-donate" }
               ].map((link, i) => (
                 <li key={i}>
                   <Link
@@ -90,21 +91,22 @@ export default function Footer() {
             <h3 className="font-bold text-lg mb-6 text-sky-300">Resources</h3>
             <ul className="space-y-3">
               {[
-                "O-Level Materials",
-                "A-Level Materials",
-                "Past Exam Papers",
-                "Study Guides",
-                "Syllabus Documents",
-                "FAQ"
-              ].map((item, i) => (
+                { to: "/o-level", label: "O-Level Materials", testid: "link-footer-olevel" },
+                { to: "/a-level", label: "A-Level Materials", testid: "link-footer-alevel" },
+                { to: "/past-papers", label: "Past Exam Papers", testid: "link-footer-pastpapers" },
+                { to: "/study-guides", label: "Study Guides", testid: "link-footer-studyguides" },
+                { to: "/syllabus", label: "Syllabus Documents", testid: "link-footer-syllabus" },
+                { to: "/faq", label: "FAQ", testid: "link-footer-faq" }
+              ].map((link, i) => (
                 <li key={i}>
-                  <a
-                    href="#"
+                  <Link
+                    href={link.to}
                     className="text-gray-400 hover:text-sky-300 transition-colors duration-200 flex items-center gap-2 group"
+                    data-testid={link.testid}
                   >
                     <span className="w-1.5 h-1.5 bg-sky-500 rounded-full group-hover:scale-150 transition-transform"></span>
-                    {item}
-                  </a>
+                    {link.label}
+                  </Link>
                 </li>
               ))}
             </ul>

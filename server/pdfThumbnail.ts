@@ -1,11 +1,11 @@
 
 import sharp from 'sharp';
-import pdfParse from 'pdf-parse';
+import * as pdfParse from 'pdf-parse';
 
 export async function generatePdfThumbnail(pdfBuffer: Buffer): Promise<Buffer> {
   try {
     // Parse the PDF
-    const data = await pdfParse(pdfBuffer);
+    const data = await (pdfParse as any).default(pdfBuffer);
     
     // For now, create a simple placeholder thumbnail with PDF info
     // Note: Full PDF rendering requires additional dependencies like pdf-poppler
