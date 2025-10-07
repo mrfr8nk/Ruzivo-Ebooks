@@ -38,6 +38,30 @@ export async function uploadFileToSupabase(
   return urlData.publicUrl;
 }
 
+export async function uploadThumbnailToSupabase(
+  thumbnailBuffer: Buffer,
+  fileName: string
+): Promise<string> {
+  const filePath = `thumbnails/${fileName}`;
+  
+  const { data, error } = await supabase.storage
+    .from(BUCKET_NAME)
+    .upload(filePath, thumbnailBuffer, {
+      contentType: 'image/jpeg',
+      upsert: true,
+    });
+
+  if (error) {
+    throw new Error(`Supabase thumbnail upload error: ${error.message}`);
+  }
+
+  const { data: urlData } = supabase.storage
+    .from(BUCKET_NAME)
+    .getPublicUrl(filePath);
+
+  return urlData.publicUrl;
+}
+
 export function getPublicUrl(filePath: string): string {
   const { data } = supabase.storage
     .from(BUCKET_NAME)

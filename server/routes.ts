@@ -3,8 +3,9 @@ import { createServer, type Server } from "http";
 import multer from "multer";
 import bcrypt from "bcryptjs";
 import { storage } from "./storage";
-import { uploadFileToSupabase } from "./supabase";
+import { uploadFileToSupabase, uploadThumbnailToSupabase } from "./supabase";
 import { insertBookSchema, bookMetadataSchema, insertUserSchema } from "@shared/schema";
+import { generatePdfThumbnail } from "./pdfThumbnail";
 
 // Session middleware for student authentication
 interface AuthRequest extends Request {
@@ -179,12 +180,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Upload to Supabase
       const fileUrl = await uploadFileToSupabase(req.file, fileName);
 
+      // Generate thumbnail for PDFs
+      let coverUrl = bookData.coverUrl;
+      if (!coverUrl && req.file.mimetype === 'application/pdf') {
+        try {
+          const thumbnailBuffer = await generatePdfThumbnail(req.file.buffer);
+          const thumbnailFileName = `${sanitizedTitle}_${timestamp}_thumb.jpg`;
+          coverUrl = await uploadThumbnailToSupabase(thumbnailBuffer, thumbnailFileName);
+        } catch (error) {
+          console.error('Thumbnail generation failed:', error);
+          // Continue without thumbnail
+        }
+      }
+
       // Save metadata to storage
       const book = await storage.createBook({
         ...validation.data,
         fileUrl,
         fileName,
         fileSize,
+        coverUrl: coverUrl || bookData.coverUrl,
       });
 
       res.json(book);
