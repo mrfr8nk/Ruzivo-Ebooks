@@ -60,7 +60,7 @@ export default function BookCard({ id, title, author, level, form, coverUrl, dow
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div className="aspect-[3/4] relative bg-gradient-to-br from-sky-100 to-blue-100 dark:from-sky-900 dark:to-blue-900 overflow-hidden">
+      <div className="aspect-[2/3] relative bg-gradient-to-br from-sky-100 to-blue-100 dark:from-sky-900 dark:to-blue-900 overflow-hidden max-h-64">
         {coverUrl ? (
           <img
             src={coverUrl}
@@ -72,7 +72,7 @@ export default function BookCard({ id, title, author, level, form, coverUrl, dow
             <img 
               src="https://cdn.mrfrankofc.gleeze.com/pdf_image.png" 
               alt={title}
-              className={`w-32 h-32 object-contain transition-all duration-500 ${isHovered ? 'scale-110' : ''}`}
+              className={`w-20 h-20 object-contain transition-all duration-500 ${isHovered ? 'scale-110' : ''}`}
             />
           </div>
         )}

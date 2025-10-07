@@ -13,7 +13,12 @@ export async function connectToMongoDB(): Promise<Db> {
   }
 
   try {
-    client = new MongoClient(MONGODB_URI);
+    client = new MongoClient(MONGODB_URI, {
+      maxPoolSize: 10,
+      minPoolSize: 1,
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+    });
     await client.connect();
     db = client.db('ebooks');
     console.log('✅ Connected to MongoDB');
