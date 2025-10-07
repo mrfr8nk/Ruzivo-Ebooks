@@ -62,12 +62,23 @@ export async function trackVisitor(req: Request) {
   const db = await getDB();
   const ip = req.ip || req.headers['x-forwarded-for'] as string || 'unknown';
   const userAgent = req.headers['user-agent'] || 'unknown';
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
   
-  await db.collection('visitors').insertOne({
+  // Check if this IP has already been counted today
+  const existingVisit = await db.collection('visitors').findOne({
     ip,
-    userAgent,
-    visitedAt: new Date(),
+    visitedAt: { $gte: today }
   });
+  
+  // Only insert if not already visited today (unique daily visitor)
+  if (!existingVisit) {
+    await db.collection('visitors').insertOne({
+      ip,
+      userAgent,
+      visitedAt: new Date(),
+    });
+  }
 }
 
 export async function getSiteStats() {

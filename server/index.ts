@@ -28,7 +28,7 @@ app.use(
   })
 );
 
-app.use((req, res, next) => {
+app.use(async (req, res, next) => {
   const start = Date.now();
   const path = req.path;
   let capturedJsonResponse: Record<string, any> | undefined = undefined;
@@ -54,6 +54,16 @@ app.use((req, res, next) => {
       log(logLine);
     }
   });
+
+  // Track visitor for non-API routes (actual page views)
+  if (!path.startsWith("/api") && !path.includes(".") && path !== "/favicon.ico") {
+    try {
+      const { trackVisitor } = await import("./admin");
+      await trackVisitor(req);
+    } catch (error) {
+      console.error("Visitor tracking error:", error);
+    }
+  }
 
   next();
 });
