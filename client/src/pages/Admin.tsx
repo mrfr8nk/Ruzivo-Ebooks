@@ -23,6 +23,7 @@ export default function Admin() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(credentials),
+        credentials: 'include'
       });
 
       if (response.ok) {
@@ -39,7 +40,9 @@ export default function Admin() {
 
   const loadStats = async () => {
     try {
-      const response = await fetch('/api/admin/stats');
+      const response = await fetch('/api/admin/stats', {
+        credentials: 'include'
+      });
       if (response.ok) {
         const data = await response.json();
         setStats(data);
@@ -61,10 +64,16 @@ export default function Admin() {
     if (!confirm('Are you sure you want to delete this book?')) return;
 
     try {
-      const response = await fetch(`/api/admin/books/${bookId}`, { method: 'DELETE' });
+      const response = await fetch(`/api/admin/books/${bookId}`, { 
+        method: 'DELETE',
+        credentials: 'include'
+      });
       if (response.ok) {
         toast({ title: "Book deleted successfully" });
-        loadStats();
+        await loadStats();
+      } else {
+        const error = await response.json();
+        toast({ title: "Error", description: error.error || "Failed to delete book", variant: "destructive" });
       }
     } catch (error) {
       toast({ title: "Error", description: "Failed to delete book", variant: "destructive" });
@@ -77,6 +86,7 @@ export default function Admin() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ isLocked, message: maintenance.message }),
+        credentials: 'include'
       });
 
       if (response.ok) {
