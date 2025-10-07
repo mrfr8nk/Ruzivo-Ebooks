@@ -68,6 +68,36 @@ app.use(async (req, res, next) => {
   next();
 });
 
+// Maintenance mode middleware - allow admin routes
+app.use(async (req, res, next) => {
+  // Skip maintenance check for admin routes and API endpoints
+  if (req.path.startsWith('/api/admin') || req.path === '/admin') {
+    return next();
+  }
+
+  try {
+    const { getSiteMaintenance } = await import("./admin");
+    const maintenance = await getSiteMaintenance();
+    
+    if (maintenance.isLocked) {
+      // For API routes, return JSON error
+      if (req.path.startsWith('/api')) {
+        return res.status(503).json({ 
+          error: 'Site is under maintenance', 
+          message: maintenance.message 
+        });
+      }
+      
+      // For page routes, redirect to admin page with maintenance message
+      return res.redirect(`/admin?maintenance=true&message=${encodeURIComponent(maintenance.message)}`);
+    }
+  } catch (error) {
+    console.error("Maintenance check error:", error);
+  }
+  
+  next();
+});
+
 (async () => {
   // Initialize MongoDB connection
   const { connectToMongoDB } = await import("./mongodb");

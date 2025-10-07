@@ -60,6 +60,20 @@ export default function Admin() {
     }
   }, [isLoggedIn]);
 
+  // Check for maintenance mode from URL params
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const maintenanceMode = params.get('maintenance');
+    const maintenanceMsg = params.get('message');
+    
+    if (maintenanceMode === 'true') {
+      setMaintenance({ 
+        isLocked: true, 
+        message: maintenanceMsg || 'Site is under maintenance' 
+      });
+    }
+  }, []);
+
   const handleDeleteBook = async (bookId: string) => {
     if (!confirm('Are you sure you want to delete this book?')) return;
 
@@ -152,6 +166,22 @@ export default function Admin() {
           </div>
           <Button variant="outline" onClick={() => setIsLoggedIn(false)}>Logout</Button>
         </div>
+
+        {/* Maintenance Mode Banner */}
+        {maintenance.isLocked && (
+          <div className="mb-8 p-4 bg-orange-100 dark:bg-orange-900/30 border-2 border-orange-500 rounded-lg">
+            <div className="flex items-center gap-3">
+              <Lock className="h-6 w-6 text-orange-600" />
+              <div>
+                <h3 className="font-bold text-orange-800 dark:text-orange-400">Site Under Maintenance</h3>
+                <p className="text-sm text-orange-700 dark:text-orange-300">
+                  The site is currently locked. Only admin routes are accessible.
+                  {maintenance.message && ` Message: ${maintenance.message}`}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Main Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
