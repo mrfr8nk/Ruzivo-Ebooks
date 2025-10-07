@@ -1,8 +1,6 @@
 
 import sharp from 'sharp';
-
-// Use dynamic import for pdf-parse since it's a CommonJS module
-const pdfParse = require('pdf-parse');
+import pdfParse from 'pdf-parse';
 
 export async function generatePdfThumbnail(pdfBuffer: Buffer): Promise<Buffer> {
   try {
