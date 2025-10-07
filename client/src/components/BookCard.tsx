@@ -113,7 +113,9 @@ export default function BookCard({ id, title, author, level, form, coverUrl, dow
 
       <CardContent className="p-5 space-y-3">
         <h3 className="font-bold text-lg mb-1 line-clamp-2 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors duration-300">{title}</h3>
-        <p className="text-sm text-muted-foreground font-medium">{author}</p>
+        <p className="text-sm text-muted-foreground font-medium">
+          <span className="font-semibold text-sky-600 dark:text-sky-400">Author:</span> {author}
+        </p>
 
         <div className="flex items-center gap-2 flex-wrap">
           <Badge className="bg-gradient-to-r from-sky-500 to-blue-600 text-white border-0 shadow-md hover:shadow-lg transition-shadow rounded-lg px-3 py-1">
