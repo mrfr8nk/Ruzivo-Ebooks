@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Hero from "@/components/Hero";
@@ -46,15 +45,15 @@ export default function Home() {
         book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         book.author.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (book as any).description?.toLowerCase().includes(searchQuery.toLowerCase());
-      
+
       const matchesCurriculum = filterCurriculum === "all" || book.curriculum === filterCurriculum;
       const matchesLevel = filterLevel === "all" || book.level === filterLevel;
       const matchesBookType = filterBookType === "all" || (book as any).bookType === filterBookType;
-      
+
       const bookTags = (book as any).tags || [];
       const matchesTags = selectedTags.length === 0 || 
         selectedTags.some(tag => bookTags.includes(tag));
-      
+
       return matchesSearch && matchesCurriculum && matchesLevel && matchesBookType && matchesTags;
     })
     .sort((a, b) => {
@@ -84,7 +83,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-sky-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-sky-950 dark:to-blue-950">
       <Hero />
-      
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         {/* Form Preference Selector */}
         <div className="mb-6 backdrop-blur-xl bg-gradient-to-r from-sky-500/10 to-blue-500/10 rounded-2xl p-6 border-2 border-sky-300/50 dark:border-sky-600/50 shadow-lg animate-fade-in">
@@ -244,7 +243,7 @@ export default function Home() {
                     </Button>
                   )}
                 </div>
-                
+
                 <div className="space-y-3">
                   <div>
                     <p className="text-xs font-medium text-muted-foreground mb-2">Subject</p>
@@ -290,6 +289,15 @@ export default function Home() {
             </div>
           )}
         </div>
+
+        {searchQuery && (
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <p className="text-lg text-muted-foreground">
+              Search results for: <span className="font-semibold text-foreground">"{searchQuery}"</span>
+              {filteredAndSortedBooks.length > 0 ? ` (${filteredAndSortedBooks.length} found)` : ' (No results)'}
+            </p>
+          </div>
+        )}
 
         {/* Trending Section */}
         {trendingBooks.length > 0 && (
