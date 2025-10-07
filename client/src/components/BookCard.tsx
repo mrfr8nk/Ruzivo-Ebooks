@@ -68,11 +68,11 @@ export default function BookCard({ id, title, author, level, form, coverUrl, dow
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center">
+          <div className="w-full h-full flex items-center justify-center p-4">
             <img 
               src="https://cdn.mrfrankofc.gleeze.com/pdf_image.png" 
               alt={title}
-              className={`w-20 h-20 object-contain transition-all duration-500 ${isHovered ? 'scale-110' : ''}`}
+              className={`w-full h-full object-contain transition-all duration-500 ${isHovered ? 'scale-110' : ''}`}
             />
           </div>
         )}
@@ -129,17 +129,18 @@ export default function BookCard({ id, title, author, level, form, coverUrl, dow
             <span className="font-semibold text-sky-600 dark:text-sky-400">Uploaded by:</span> {uploadedBy}
           </p>
         )}
-        
-        {fileSize && (
-          <p className="text-xs text-muted-foreground">
-            <span className="font-semibold text-sky-600 dark:text-sky-400">File size:</span> {formatFileSize(fileSize)}
-          </p>
-        )}
 
-        <div className="flex items-center justify-between pt-2">
-          <div className="flex items-center gap-1.5 text-sm text-muted-foreground bg-sky-50 dark:bg-sky-900/30 px-3 py-1.5 rounded-lg">
-            <Download className="w-4 h-4 text-sky-600 dark:text-sky-400" />
-            <span className="font-bold text-sky-700 dark:text-sky-300">{downloads}</span>
+        <div className="flex items-center justify-between pt-2 gap-2">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5 text-sm text-muted-foreground bg-sky-50 dark:bg-sky-900/30 px-3 py-1.5 rounded-lg">
+              <Download className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+              <span className="font-bold text-sky-700 dark:text-sky-300">{downloads}</span>
+            </div>
+            {fileSize && (
+              <div className="text-xs font-semibold text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-900/30 px-3 py-1.5 rounded-lg">
+                {formatFileSize(fileSize)}
+              </div>
+            )}
           </div>
 
           <Button
