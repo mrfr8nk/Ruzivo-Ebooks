@@ -1,4 +1,3 @@
-
 import { Download, TrendingUp, BookOpen, Eye, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -25,7 +24,7 @@ interface BookCardProps {
 }
 
 export default function BookCard({ id, title, author, level, form, coverUrl, downloads, uploadedBy, curriculum, isTrending, fileSize, tags = [] }: BookCardProps) {
-  
+
   const formatFileSize = (bytes?: number): string => {
     if (!bytes) return 'Unknown size';
     if (bytes < 1024) return bytes + ' B';
@@ -39,26 +38,47 @@ export default function BookCard({ id, title, author, level, form, coverUrl, dow
 
   const handleDownload = async () => {
     try {
-      await downloadBook(id, `${title}.pdf`);
-      queryClient.invalidateQueries({ queryKey: ['/api/books'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/books/trending'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/books/most-downloaded'] });
+      const response = await fetch(`/api/books/${id}/download`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error('Download failed');
+      }
+
+      const data = await response.json();
+
+      // Modify filename to include "downloaded from ruzivoMaths"
+      const originalFileName = data.fileName;
+      const fileExtension = originalFileName.substring(originalFileName.lastIndexOf('.'));
+      const fileNameWithoutExt = originalFileName.substring(0, originalFileName.lastIndexOf('.'));
+      const newFileName = `${fileNameWithoutExt}_downloaded_from_ruzivoMaths${fileExtension}`;
+
+      // Create download link
+      const link = document.createElement('a');
+      link.href = data.fileUrl;
+      link.download = newFileName;
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
 
       toast({
         title: "Download started",
-        description: `Downloading ${title}`,
+        description: "Your download has been initiated",
       });
     } catch (error) {
       toast({
         title: "Download failed",
-        description: error instanceof Error ? error.message : "Failed to download book",
+        description: "Failed to download the book",
         variant: "destructive",
       });
     }
   };
 
   return (
-    <Card 
+    <Card
       className="group overflow-hidden backdrop-blur-xl bg-white dark:bg-gray-900 border-2 border-sky-200/30 dark:border-sky-700/30 shadow-lg hover:shadow-2xl hover:shadow-sky-500/20 transition-all duration-500 hover:-translate-y-2 hover:scale-[1.02] hover:border-sky-400/50 rounded-2xl"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -72,14 +92,14 @@ export default function BookCard({ id, title, author, level, form, coverUrl, dow
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center p-6">
-            <img 
-              src="https://cdn.mrfrankofc.gleeze.com/pdf_image.png" 
+            <img
+              src="https://cdn.mrfrankofc.gleeze.com/pdf_image.png"
               alt={title}
               className={`w-full h-full object-contain transition-all duration-500 ${isHovered ? 'scale-110' : ''}`}
             />
           </div>
         )}
-        
+
         {/* Overlay on hover */}
         <div className={`absolute inset-0 bg-gradient-to-t from-sky-900/90 via-sky-900/50 to-transparent transition-opacity duration-300 ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
           <div className="absolute bottom-4 left-4 right-4 flex gap-2">

@@ -32,7 +32,7 @@ export default function UploadForm() {
   const { toast } = useToast();
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [bookData, setBookData] = useState({
     title: "",
@@ -47,7 +47,7 @@ export default function UploadForm() {
     description: "",
   });
 
-  // Optional: Check if user is authenticated (but don't block upload)
+  // Check if user is authenticated
   const { data: user } = useQuery({
     queryKey: ['/api/auth/me'],
   });
@@ -62,38 +62,50 @@ export default function UploadForm() {
     e.preventDefault();
     e.stopPropagation();
 
-    if (e.target.files && e.target.files[0]) {
-      const selectedFile = e.target.files[0];
-      if (selectedFile.size > 50 * 1024 * 1024) {
+    if (e.target.files && e.target.files.length > 0) {
+      const selectedFiles = Array.from(e.target.files);
+      
+      // Check file sizes
+      const oversizedFiles = selectedFiles.filter(f => f.size > 50 * 1024 * 1024);
+      if (oversizedFiles.length > 0) {
         toast({
           title: "File too large",
-          description: "File size must be less than 50MB",
+          description: `${oversizedFiles.length} file(s) exceed 50MB limit`,
           variant: "destructive",
         });
-        e.target.value = ''; // Reset the input
+        e.target.value = '';
         return;
       }
-      setFile(selectedFile);
       
-      // Auto-fill title from filename (remove extension)
-      const fileNameWithoutExtension = selectedFile.name.replace(/\.(pdf|epub)$/i, '');
-      setBookData(prev => ({ ...prev, title: fileNameWithoutExtension }));
+      setFiles(selectedFiles);
+      
+      // Auto-fill title from first filename if only one file
+      if (selectedFiles.length === 1) {
+        const fileNameWithoutExtension = selectedFiles[0].name.replace(/\.(pdf|epub|docx?|pptx?)$/i, '');
+        setBookData(prev => ({ ...prev, title: fileNameWithoutExtension }));
+      } else {
+        setBookData(prev => ({ ...prev, title: "" }));
+      }
     }
+  };
+
+  const removeFile = (index: number) => {
+    setFiles(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!file) {
+    if (files.length === 0) {
       toast({
         title: "No file selected",
-        description: "Please select a file to upload",
+        description: "Please select at least one file to upload",
         variant: "destructive",
       });
       return;
     }
 
-    if (!bookData.title) {
+    if (files.length === 1 && !bookData.title) {
       toast({
         title: "Missing title",
         description: "Please enter a book title",
@@ -106,84 +118,67 @@ export default function UploadForm() {
     setUploadProgress(0);
 
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('title', bookData.title);
-      
-      // Only append optional fields if they have values
-      if (bookData.author) formData.append('author', bookData.author);
-      if (bookData.curriculum) formData.append('curriculum', bookData.curriculum);
-      if (bookData.level) formData.append('level', bookData.level);
-      if (bookData.form) formData.append('form', bookData.form);
-      if (bookData.coverUrl) formData.append('coverUrl', bookData.coverUrl);
-      if (bookData.bookType) formData.append('bookType', bookData.bookType);
-      if (bookData.description) formData.append('description', bookData.description);
-      if (bookData.year) formData.append('year', bookData.year);
-      if (bookData.examSession) formData.append('examSession', bookData.examSession);
-      
-      formData.append('tags', JSON.stringify(selectedTags));
+      let successCount = 0;
+      const totalFiles = files.length;
 
-      const xhr = new XMLHttpRequest();
-
-      xhr.upload.addEventListener('progress', (e) => {
-        if (e.lengthComputable) {
-          const percentComplete = (e.loaded / e.total) * 100;
-          setUploadProgress(percentComplete);
-        }
-      });
-
-      xhr.addEventListener('load', () => {
-        setIsUploading(false);
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const formData = new FormData();
+        formData.append('file', file);
         
-        if (xhr.status === 200 || xhr.status === 201) {
-          setUploadProgress(100);
-          toast({
-            title: "Upload successful! ✓",
-            description: "Your book has been uploaded successfully",
-          });
-          setTimeout(() => setLocation('/'), 1500);
-        } else {
-          setUploadProgress(0);
-          try {
-            const error = JSON.parse(xhr.responseText);
-            toast({
-              title: "Upload failed",
-              description: error.error || 'Failed to upload book',
-              variant: "destructive",
-            });
-          } catch (e) {
-            toast({
-              title: "Upload failed",
-              description: 'Failed to upload book',
-              variant: "destructive",
-            });
-          }
-        }
-      });
+        // Use provided title for single file, or filename for multiple files
+        const title = files.length === 1 ? bookData.title : file.name.replace(/\.(pdf|epub|docx?|pptx?)$/i, '');
+        formData.append('title', title);
+        
+        // Only append optional fields if they have values
+        if (bookData.author) formData.append('author', bookData.author);
+        if (bookData.curriculum) formData.append('curriculum', bookData.curriculum);
+        if (bookData.level) formData.append('level', bookData.level);
+        if (bookData.form) formData.append('form', bookData.form);
+        if (bookData.coverUrl) formData.append('coverUrl', bookData.coverUrl);
+        if (bookData.bookType) formData.append('bookType', bookData.bookType);
+        if (bookData.description) formData.append('description', bookData.description);
+        if (bookData.year) formData.append('year', bookData.year);
+        if (bookData.examSession) formData.append('examSession', bookData.examSession);
+        
+        formData.append('tags', JSON.stringify(selectedTags));
 
-      xhr.addEventListener('error', () => {
-        setIsUploading(false);
-        setUploadProgress(0);
+        const response = await fetch('/api/books/upload', {
+          method: 'POST',
+          body: formData,
+          credentials: 'include',
+        });
+
+        if (response.ok) {
+          successCount++;
+          setUploadProgress(((i + 1) / totalFiles) * 100);
+        } else {
+          const error = await response.json();
+          console.error(`Failed to upload ${file.name}:`, error);
+        }
+      }
+
+      setIsUploading(false);
+      
+      if (successCount === totalFiles) {
+        toast({
+          title: "Upload successful! ✓",
+          description: `${successCount} book${successCount > 1 ? 's' : ''} uploaded successfully`,
+        });
+        setTimeout(() => setLocation('/'), 1500);
+      } else if (successCount > 0) {
+        toast({
+          title: "Partial success",
+          description: `${successCount} of ${totalFiles} books uploaded`,
+          variant: "destructive",
+        });
+      } else {
         toast({
           title: "Upload failed",
-          description: 'Network error occurred',
+          description: "Failed to upload books",
           variant: "destructive",
         });
-      });
-
-      xhr.addEventListener('abort', () => {
-        setIsUploading(false);
-        setUploadProgress(0);
-        toast({
-          title: "Upload cancelled",
-          description: 'Upload was cancelled',
-          variant: "destructive",
-        });
-      });
-
-      xhr.open('POST', '/api/books/upload');
-      xhr.withCredentials = true; // Include session cookie
-      xhr.send(formData);
+      }
 
     } catch (error) {
       toast({
@@ -200,12 +195,18 @@ export default function UploadForm() {
     <Card className="max-w-2xl mx-auto backdrop-blur-xl bg-white/70 dark:bg-gray-900/70 border-white/20 shadow-2xl">
       <CardHeader>
         <CardTitle className="text-2xl">Upload Educational Resource</CardTitle>
-        <CardDescription>Share your knowledge with the student community</CardDescription>
+        <CardDescription>
+          {user ? (
+            <>Uploading as <span className="font-semibold text-sky-600">{user.username}</span></>
+          ) : (
+            <>Uploading anonymously - Login to get credit for your uploads</>
+          )}
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="file">Book File (PDF, EPUB, DOCX, DOC, PPT, PPTX)</Label>
+            <Label htmlFor="file">Book Files (PDF, EPUB, DOCX, DOC, PPT, PPTX) - Select multiple files</Label>
             <div className="relative">
               <Input
                 id="file"
@@ -215,11 +216,29 @@ export default function UploadForm() {
                 disabled={isUploading}
                 className="cursor-pointer"
                 data-testid="input-file"
+                multiple
               />
-              {file && (
-                <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
-                  <FileText className="w-4 h-4" />
-                  <span>{file.name}</span>
+              {files.length > 0 && (
+                <div className="mt-3 space-y-2">
+                  <p className="text-sm font-medium">{files.length} file{files.length > 1 ? 's' : ''} selected:</p>
+                  {files.map((file, index) => (
+                    <div key={index} className="flex items-center justify-between gap-2 text-sm bg-sky-50 dark:bg-sky-900/20 p-2 rounded">
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <FileText className="w-4 h-4 text-sky-600 flex-shrink-0" />
+                        <span className="truncate">{file.name}</span>
+                      </div>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => removeFile(index)}
+                        disabled={isUploading}
+                        className="flex-shrink-0"
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
@@ -237,13 +256,15 @@ export default function UploadForm() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="title">Book Title</Label>
+              <Label htmlFor="title">
+                Book Title {files.length > 1 && <span className="text-muted-foreground text-sm">(Auto-filled from filenames)</span>}
+              </Label>
               <Input
                 id="title"
                 placeholder="e.g., Mathematics Revision Guide"
                 value={bookData.title}
                 onChange={(e) => setBookData({ ...bookData, title: e.target.value })}
-                disabled={isUploading}
+                disabled={isUploading || files.length > 1}
                 data-testid="input-title"
               />
             </div>
@@ -430,7 +451,7 @@ export default function UploadForm() {
 
           <Button type="submit" className="w-full gap-2" disabled={isUploading} data-testid="button-submit-upload">
             <Upload className="w-4 h-4" />
-            {isUploading ? `Uploading... ${Math.round(uploadProgress)}%` : 'Upload Book'}
+            {isUploading ? `Uploading... ${Math.round(uploadProgress)}%` : `Upload ${files.length > 1 ? `${files.length} Books` : 'Book'}`}
           </Button>
         </form>
       </CardContent>
