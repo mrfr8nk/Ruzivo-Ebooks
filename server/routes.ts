@@ -268,6 +268,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get top uploaders
+  app.get('/api/top-uploaders', async (_req, res) => {
+    try {
+      const uploaders = await storage.getTopUploaders(10);
+      res.json(uploaders);
+    } catch (error) {
+      console.error('Get top uploaders error:', error);
+      res.status(500).json({ error: 'Failed to fetch top uploaders' });
+    }
+  });
+
   // Get single book
   app.get('/api/books/:id', async (req, res) => {
     try {
@@ -321,6 +332,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Stats error:', error);
       res.status(500).json({ error: 'Failed to fetch stats' });
+    }
+  });
+
+  // Get all users with uploads (admin only)
+  app.get('/api/admin/users-uploads', async (req, res) => {
+    try {
+      const { authenticateAdmin } = await import('./admin');
+      authenticateAdmin(req as any, res, async () => {
+        const usersWithUploads = await storage.getAllUsersWithUploads();
+        res.json(usersWithUploads);
+      });
+    } catch (error) {
+      console.error('Get users with uploads error:', error);
+      res.status(500).json({ error: 'Failed to fetch users with uploads' });
     }
   });
 
