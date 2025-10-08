@@ -25,7 +25,7 @@ function requireAuth(req: AuthRequest, res: Response, next: NextFunction) {
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
-    fileSize: 50 * 1024 * 1024, // 50MB limit
+    fileSize: 500 * 1024 * 1024, // 500MB limit
   },
   fileFilter: (_req, file, cb) => {
     const allowedTypes = [
