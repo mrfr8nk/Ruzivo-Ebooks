@@ -51,7 +51,12 @@ export default function Login() {
         description: `Welcome back, ${data.user.username}!`,
       });
 
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+      // Set user data in cache before redirecting
+      queryClient.setQueryData(['/api/auth/me'], data.user);
+      
+      // Small delay to ensure cookie is set
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       setLocation('/dashboard');
     } catch (error) {
       toast({
