@@ -19,6 +19,8 @@ export interface IStorage {
   getMostDownloadedBooks(limit?: number): Promise<BookMetadata[]>;
   deleteBook(id: string): Promise<void>;
   getBooksByUsername(username: string): Promise<BookMetadata[]>;
+  getTopUploaders(limit?: number): Promise<Array<{ username: string; uploadCount: number }>>;
+  getAllUsersWithUploads(): Promise<Array<{ username: string; uploadCount: number; books: BookMetadata[] }>>;
 }
 
 export class MongoDBStorage implements IStorage {
@@ -127,6 +129,52 @@ export class MongoDBStorage implements IStorage {
       .sort({ uploadedAt: -1 })
       .toArray();
     return books.map(book => ({ ...book, _id: book._id.toString() })) as BookMetadata[];
+  }
+
+  async getTopUploaders(limit: number = 10): Promise<Array<{ username: string; uploadCount: number }>> {
+    const db = await getDB();
+    const result = await db.collection('books')
+      .aggregate([
+        {
+          $group: {
+            _id: "$uploadedBy",
+            uploadCount: { $sum: 1 }
+          }
+        },
+        {
+          $sort: { uploadCount: -1 }
+        },
+        {
+          $limit: limit
+        },
+        {
+          $project: {
+            _id: 0,
+            username: "$_id",
+            uploadCount: 1
+          }
+        }
+      ])
+      .toArray();
+    return result as Array<{ username: string; uploadCount: number }>;
+  }
+
+  async getAllUsersWithUploads(): Promise<Array<{ username: string; uploadCount: number; books: BookMetadata[] }>> {
+    const db = await getDB();
+    const users = await db.collection('users').find({}).toArray();
+    
+    const usersWithUploads = await Promise.all(
+      users.map(async (user) => {
+        const books = await this.getBooksByUsername(user.username);
+        return {
+          username: user.username,
+          uploadCount: books.length,
+          books
+        };
+      })
+    );
+    
+    return usersWithUploads.sort((a, b) => b.uploadCount - a.uploadCount);
   }
 }
 
