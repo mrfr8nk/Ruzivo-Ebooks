@@ -21,9 +21,10 @@ interface BookCardProps {
   uploadedBy?: string;
   isTrending?: boolean;
   fileSize?: number;
+  tags?: string[];
 }
 
-export default function BookCard({ id, title, author, level, form, coverUrl, downloads, uploadedBy, curriculum, isTrending, fileSize }: BookCardProps) {
+export default function BookCard({ id, title, author, level, form, coverUrl, downloads, uploadedBy, curriculum, isTrending, fileSize, tags = [] }: BookCardProps) {
   
   const formatFileSize = (bytes?: number): string => {
     if (!bytes) return 'Unknown size';
@@ -136,6 +137,25 @@ export default function BookCard({ id, title, author, level, form, coverUrl, dow
             {form}
           </Badge>
         </div>
+
+        {tags.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 pt-2">
+            {tags.slice(0, 3).map((tag) => (
+              <Badge
+                key={tag}
+                variant="secondary"
+                className="text-xs bg-sky-100 dark:bg-sky-900/50 text-sky-700 dark:text-sky-300 border-0"
+              >
+                {tag.replace(/-/g, ' ')}
+              </Badge>
+            ))}
+            {tags.length > 3 && (
+              <Badge variant="secondary" className="text-xs bg-sky-100 dark:bg-sky-900/50 text-sky-700 dark:text-sky-300 border-0">
+                +{tags.length - 3}
+              </Badge>
+            )}
+          </div>
+        )}
 
         {uploadedBy && (
           <p className="text-xs text-muted-foreground flex items-center gap-1 pt-2 border-t border-sky-100 dark:border-sky-900">

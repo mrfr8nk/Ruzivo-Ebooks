@@ -144,7 +144,7 @@ export default function UploadForm() {
       });
 
       xhr.addEventListener('load', () => {
-        if (xhr.status === 200) {
+        if (xhr.status === 200 || xhr.status === 201) {
           setIsUploading(false);
           setUploadProgress(100);
           toast({
@@ -153,8 +153,14 @@ export default function UploadForm() {
           });
           setTimeout(() => setLocation('/'), 1500);
         } else {
-          const error = JSON.parse(xhr.responseText);
-          throw new Error(error.error || 'Upload failed');
+          setIsUploading(false);
+          setUploadProgress(0);
+          try {
+            const error = JSON.parse(xhr.responseText);
+            throw new Error(error.error || 'Upload failed');
+          } catch (e) {
+            throw new Error('Upload failed');
+          }
         }
       });
 
@@ -185,12 +191,12 @@ export default function UploadForm() {
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="file">Book File (PDF or EPUB)</Label>
+            <Label htmlFor="file">Book File (PDF, EPUB, DOCX, DOC, PPT, PPTX)</Label>
             <div className="relative">
               <Input
                 id="file"
                 type="file"
-                accept=".pdf,.epub"
+                accept=".pdf,.epub,.doc,.docx,.ppt,.pptx"
                 onChange={handleFileChange}
                 disabled={isUploading}
                 className="cursor-pointer"
@@ -297,6 +303,7 @@ export default function UploadForm() {
                 <SelectContent>
                   <SelectItem value="Textbook">Textbook</SelectItem>
                   <SelectItem value="Past Exam Paper">Past Exam Paper</SelectItem>
+                  <SelectItem value="Marking Scheme">Marking Scheme</SelectItem>
                   <SelectItem value="Greenbook">Greenbook</SelectItem>
                   <SelectItem value="Bluebook">Bluebook</SelectItem>
                   <SelectItem value="Syllabus">Syllabus</SelectItem>

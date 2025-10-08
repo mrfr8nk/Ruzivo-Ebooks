@@ -22,7 +22,7 @@ export const bookMetadataSchema = z.object({
   _id: z.string().optional(),
   title: z.string().min(1, "Book title is required"),
   author: z.string().optional(),
-  bookType: z.enum(["Textbook", "Past Exam Paper", "Greenbook", "Bluebook", "Syllabus"]).optional(),
+  bookType: z.enum(["Textbook", "Past Exam Paper", "Marking Scheme", "Greenbook", "Bluebook", "Syllabus"]).optional(),
   curriculum: z.enum(["ZIMSEC", "Cambridge", "Other"]).optional(),
   level: z.enum(["O-Level", "A-Level"]).optional(),
   form: z.string().optional(),

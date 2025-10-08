@@ -28,11 +28,18 @@ const upload = multer({
     fileSize: 50 * 1024 * 1024, // 50MB limit
   },
   fileFilter: (_req, file, cb) => {
-    const allowedTypes = ['application/pdf', 'application/epub+zip'];
+    const allowedTypes = [
+      'application/pdf',
+      'application/epub+zip',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-powerpoint',
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+    ];
     if (allowedTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error('Invalid file type. Only PDF and EPUB files are allowed.'));
+      cb(new Error('Invalid file type. Only PDF, EPUB, DOC, DOCX, PPT, and PPTX files are allowed.'));
     }
   },
 });
