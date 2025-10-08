@@ -158,8 +158,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Upload a new book (requires authentication)
-  app.post('/api/books/upload', requireAuth, upload.single('file'), async (req: AuthRequest, res) => {
+  // Upload a new book (no authentication required)
+  app.post('/api/books/upload', upload.single('file'), async (req: AuthRequest, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ error: 'No file uploaded' });
@@ -177,7 +177,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         description: req.body.description || undefined,
         tags: req.body.tags ? JSON.parse(req.body.tags) : [],
         coverUrl: req.body.coverUrl || undefined,
-        uploadedBy: req.session.username!, // Use authenticated user's username
+        uploadedBy: req.session.username || 'Anonymous', // Use authenticated user's username or Anonymous
       };
 
       const validation = insertBookSchema.safeParse(bookData);

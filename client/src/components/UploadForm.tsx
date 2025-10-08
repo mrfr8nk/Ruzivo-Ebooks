@@ -47,21 +47,10 @@ export default function UploadForm() {
     description: "",
   });
 
-  // Check if user is authenticated
-  const { data: user, isLoading: isLoadingUser } = useQuery({
+  // Optional: Check if user is authenticated (but don't block upload)
+  const { data: user } = useQuery({
     queryKey: ['/api/auth/me'],
   });
-
-  useEffect(() => {
-    if (!isLoadingUser && !user) {
-      toast({
-        title: "Authentication required",
-        description: "Please login to upload books",
-        variant: "destructive",
-      });
-      setLocation('/login');
-    }
-  }, [user, isLoadingUser, setLocation, toast]);
 
   const toggleTag = (tag: string) => {
     setSelectedTags(prev =>
