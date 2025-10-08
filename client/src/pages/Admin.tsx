@@ -113,7 +113,6 @@ export default function Admin() {
             </CardContent>
           </Card>
         </div>
-      </div>
     );
   }
 
