@@ -1,25 +1,13 @@
 import axios from 'axios';
 import FormData from 'form-data';
 
-const CDN_BASE_URL = 'https://catboxcdn.onrender.com';
+const CATBOX_USERHASH = 'dced0dfdd838c6d7e3f67b0b9';
+const CATBOX_API_URL = 'https://catbox.moe/user/api.php';
 
 interface MulterFile {
   buffer: Buffer;
   mimetype: string;
   originalname: string;
-}
-
-interface CDNUploadResponse {
-  success: boolean;
-  data: {
-    cdnUrl: string;
-    fileId: string;
-    originalName: string;
-    customName: string;
-    size: number;
-    mimeType: string;
-    uploadedAt: string;
-  };
 }
 
 export async function uploadFileToCDN(
@@ -28,14 +16,15 @@ export async function uploadFileToCDN(
 ): Promise<string> {
   try {
     const formData = new FormData();
-    formData.append('file', file.buffer, {
+    formData.append('reqtype', 'fileupload');
+    formData.append('userhash', CATBOX_USERHASH);
+    formData.append('fileToUpload', file.buffer, {
       filename: fileName,
       contentType: file.mimetype
     });
-    formData.append('filename', fileName);
 
-    const response = await axios.post<CDNUploadResponse>(
-      `${CDN_BASE_URL}/api/upload`,
+    const response = await axios.post(
+      CATBOX_API_URL,
       formData,
       {
         headers: formData.getHeaders(),
@@ -45,16 +34,19 @@ export async function uploadFileToCDN(
       }
     );
 
-    if (!response.data.success) {
-      throw new Error('CDN upload failed');
+    const catboxUrl = response.data.trim();
+    
+    if (!catboxUrl.startsWith('http')) {
+      throw new Error('Invalid response from Catbox: ' + catboxUrl);
     }
 
-    return response.data.data.cdnUrl;
+    console.log('Catbox upload successful:', catboxUrl);
+    return catboxUrl;
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      throw new Error(`CDN upload error: ${error.response?.data?.message || error.message}`);
+      throw new Error(`Catbox upload error: ${error.response?.data?.message || error.message}`);
     }
-    throw new Error(`CDN upload error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    throw new Error(`Catbox upload error: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 
@@ -64,14 +56,15 @@ export async function uploadThumbnailToCDN(
 ): Promise<string> {
   try {
     const formData = new FormData();
-    formData.append('file', thumbnailBuffer, {
+    formData.append('reqtype', 'fileupload');
+    formData.append('userhash', CATBOX_USERHASH);
+    formData.append('fileToUpload', thumbnailBuffer, {
       filename: fileName,
       contentType: 'image/jpeg'
     });
-    formData.append('filename', fileName);
 
-    const response = await axios.post<CDNUploadResponse>(
-      `${CDN_BASE_URL}/api/upload`,
+    const response = await axios.post(
+      CATBOX_API_URL,
       formData,
       {
         headers: formData.getHeaders(),
@@ -81,15 +74,18 @@ export async function uploadThumbnailToCDN(
       }
     );
 
-    if (!response.data.success) {
-      throw new Error('CDN thumbnail upload failed');
+    const catboxUrl = response.data.trim();
+    
+    if (!catboxUrl.startsWith('http')) {
+      throw new Error('Invalid response from Catbox: ' + catboxUrl);
     }
 
-    return response.data.data.cdnUrl;
+    console.log('Catbox thumbnail upload successful:', catboxUrl);
+    return catboxUrl;
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      throw new Error(`CDN thumbnail upload error: ${error.response?.data?.message || error.message}`);
+      throw new Error(`Catbox thumbnail upload error: ${error.response?.data?.message || error.message}`);
     }
-    throw new Error(`CDN thumbnail upload error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    throw new Error(`Catbox thumbnail upload error: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
