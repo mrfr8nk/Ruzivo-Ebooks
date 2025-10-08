@@ -48,14 +48,14 @@ Preferred communication style: Simple, everyday language.
 **Storage Strategy**: The application uses an abstracted storage pattern with an in-memory implementation (MemStorage) that can be swapped for database-backed storage, demonstrating flexibility in data persistence approaches.
 
 ### File Storage & Management
-- **File Storage Provider**: Supabase Storage for ebook file hosting
-- **Bucket Configuration**: Dedicated bucket (`mrfrankofc`) for ebook storage
+- **File Storage Provider**: Custom CDN service powered by Catbox (https://catboxcdn.onrender.com)
+- **CDN Architecture**: Self-hosted proxy CDN that uploads files to Catbox.moe and serves them through custom domain
 - **Upload Flow**: 
   1. Files uploaded via Multer to memory
   2. Processed and validated on server
-  3. Uploaded to Supabase with unique timestamped filenames
-  4. Public URLs generated and stored in database
-- **File Constraints**: 50MB upload limit, PDF and EPUB formats only
+  3. Uploaded to custom CDN with unique timestamped filenames
+  4. Public CDN URLs generated and stored in MongoDB
+- **File Constraints**: 500MB upload limit, PDF, EPUB, DOC, DOCX, PPT, and PPTX formats
 - **Security**: File type validation, sanitized filenames, public URL generation
 
 ### Authentication & Authorization
@@ -64,10 +64,11 @@ Currently implements basic user schema with username/password fields, indicating
 ## External Dependencies
 
 ### Third-Party Services
-- **Supabase**: Cloud storage provider for ebook file hosting and delivery
-  - Service URL: `https://hzhzxdopkuopvvultayn.supabase.co`
-  - Storage bucket: `mrfrankofc`
-  - Public file access via generated URLs
+- **Custom CDN**: Self-hosted CDN proxy service for ebook file hosting and delivery
+  - Service URL: `https://catboxcdn.onrender.com`
+  - Backend Storage: Catbox.moe cloud file hosting
+  - Public file access via CDN proxy URLs
+  - Supports files up to 500MB
 
 ### Database
 - **PostgreSQL**: Primary database via Neon serverless (@neondatabase/serverless)
