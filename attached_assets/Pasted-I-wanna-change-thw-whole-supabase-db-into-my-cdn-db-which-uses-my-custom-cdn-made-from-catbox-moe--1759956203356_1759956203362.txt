@@ -1,0 +1,1035 @@
+I wanna change thw whole supabase db into my cdn db which uses my custom cdn made from catbox moe
+
+
+Here is the link
+https://catboxcdn.onrender.com
+
+
+It should store all data like what my supabase didbworking with mongo tooo
+
+Change limit to 500mb of upload
+
+const express = require('express');
+const multer = require('multer');
+const axios = require('axios');
+const FormData = require('form-data');
+const cors = require('cors');
+const path = require('path');
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Your Catbox user hash
+const CATBOX_USERHASH = 'dced0dfdd838c6d7e3f67b0b9';
+
+// Configure multer for file uploads (200MB limit)
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 200 * 1024 * 1024 // 200MB
+  }
+});
+
+// Enable CORS
+app.use(cors());
+app.use(express.json());
+app.use(express.static('public'));
+
+// Store uploaded files metadata (in production, use a database)
+const fileDatabase = new Map();
+
+// Serve upload page
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'online',
+    service: 'Catbox CDN Proxy',
+    version: '1.0.0',
+    endpoints: {
+      upload: 'POST /api/upload',
+      file: 'GET /file/:fileId',
+      list: 'GET /api/files',
+      delete: 'DELETE /api/file/:fileId'
+    }
+  });
+});
+
+// Upload endpoint with file renaming support
+app.post('/api/upload', upload.single('file'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'No file uploaded' 
+      });
+    }
+
+    // Get custom filename from request body (if provided)
+    const customName = req.body.filename || req.file.originalname;
+    const fileExtension = path.extname(req.file.originalname);
+    const finalFilename = customName.endsWith(fileExtension) 
+      ? customName 
+      : customName + fileExtension;
+
+    console.log('Uploading file:', finalFilename, 'Size:', req.file.size);
+
+    // Create form data for Catbox
+    const formData = new FormData();
+    formData.append('reqtype', 'fileupload');
+    formData.append('userhash', CATBOX_USERHASH);
+    formData.append('fileToUpload', req.file.buffer, {
+      filename: finalFilename,
+      contentType: req.file.mimetype
+    });
+
+    // Upload to Catbox
+    const response = await axios.post('https://catbox.moe/user/api.php', formData, {
+      headers: formData.getHeaders(),
+      maxBodyLength: Infinity,
+      maxContentLength: Infinity,
+      timeout: 300000 // 5 minutes timeout
+    });
+
+    const catboxUrl = response.data.trim();
+    
+    if (!catboxUrl.startsWith('http')) {
+      throw new Error('Invalid response from Catbox: ' + catboxUrl);
+    }
+
+    console.log('Catbox upload successful:', catboxUrl);
+    
+    // Extract file ID from Catbox URL
+    const fileId = catboxUrl.split('/').pop();
+    
+    // Store metadata
+    const fileMetadata = {
+      fileId: fileId,
+      originalName: req.file.originalname,
+      customName: finalFilename,
+      mimeType: req.file.mimetype,
+      size: req.file.size,
+      catboxUrl: catboxUrl,
+      uploadedAt: new Date().toISOString()
+    };
+    
+    fileDatabase.set(fileId, fileMetadata);
+
+    // Return custom CDN URL
+    const cdnUrl = `${req.protocol}://${req.get('host')}/file/${fileId}`;
+
+    res.json({
+      success: true,
+      data: {
+        cdnUrl: cdnUrl,
+        fileId: fileId,
+        originalName: req.file.originalname,
+        customName: finalFilename,
+        size: req.file.size,
+        mimeType: req.file.mimetype,
+        uploadedAt: fileMetadata.uploadedAt
+      }
+    });
+
+  } catch (error) {
+    console.error('Upload error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Upload failed',
+      message: error.message
+    });
+  }
+});
+
+// Proxy endpoint - serves files through your domain
+app.get('/file/:fileId', async (req, res) => {
+  try {
+    const { fileId } = req.params;
+    const catboxUrl = `https://files.catbox.moe/${fileId}`;
+
+    console.log('Fetching file:', fileId);
+
+    // Get file metadata if available
+    const metadata = fileDatabase.get(fileId);
+
+    // Stream file from Catbox
+    const response = await axios.get(catboxUrl, {
+      responseType: 'stream',
+      timeout: 60000
+    });
+
+    // Set appropriate headers
+    if (metadata) {
+      res.setHeader('Content-Type', metadata.mimeType);
+      res.setHeader('Content-Disposition', `inline; filename="${metadata.customName}"`);
+    } else {
+      res.setHeader('Content-Type', response.headers['content-type'] || 'application/octet-stream');
+    }
+
+    res.setHeader('Cache-Control', 'public, max-age=31536000');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+
+    // Stream the file
+    response.data.pipe(res);
+
+  } catch (error) {
+    console.error('File retrieval error:', error);
+    
+    if (error.response && error.response.status === 404) {
+      res.status(404).json({
+        success: false,
+        error: 'File not found',
+        message: 'The requested file does not exist'
+      });
+    } else {
+      res.status(500).json({
+        success: false,
+        error: 'File retrieval failed',
+        message: error.message
+      });
+    }
+  }
+});
+
+// List all uploaded files (API endpoint)
+app.get('/api/files', (req, res) => {
+  const files = Array.from(fileDatabase.entries()).map(([fileId, metadata]) => ({
+    fileId,
+    cdnUrl: `${req.protocol}://${req.get('host')}/file/${fileId}`,
+    ...metadata
+  }));
+
+  res.json({
+    success: true,
+    total: files.length,
+    data: files
+  });
+});
+
+// Get single file info (API endpoint)
+app.get('/api/file/:fileId', (req, res) => {
+  const { fileId } = req.params;
+  const metadata = fileDatabase.get(fileId);
+  
+  if (metadata) {
+    res.json({
+      success: true,
+      data: {
+        fileId,
+        cdnUrl: `${req.protocol}://${req.get('host')}/file/${fileId}`,
+        ...metadata
+      }
+    });
+  } else {
+    res.status(404).json({
+      success: false,
+      error: 'File not found'
+    });
+  }
+});
+
+// Delete endpoint (API)
+app.delete('/api/file/:fileId', (req, res) => {
+  const { fileId } = req.params;
+  
+  if (fileDatabase.has(fileId)) {
+    fileDatabase.delete(fileId);
+    res.json({ 
+      success: true, 
+      message: 'File metadata deleted from CDN proxy' 
+    });
+  } else {
+    res.status(404).json({ 
+      success: false,
+      error: 'File not found' 
+    });
+  }
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Server error:', err);
+  res.status(500).json({
+    success: false,
+    error: 'Internal server error',
+    message: err.message
+  });
+});
+
+app.listen(PORT, () => {
+  console.log(`🚀 Catbox CDN Proxy running on port ${PORT}`);
+  console.log(`📦 Max file size: 200MB`);
+  console.log(`🔗 User hash: ${CATBOX_USERHASH}`);
+  console.log(`🌐 Upload page: http://localhost:${PORT}`);
+  console.log(`📡 API Docs: http://localhost:${PORT}/api/health`);
+});
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catbox CDN Proxy</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+            animation: fadeInDown 0.8s ease;
+        }
+
+        .logo {
+            font-size: 48px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+            letter-spacing: -2px;
+        }
+
+        .tagline {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 18px;
+            font-weight: 300;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            margin-bottom: 30px;
+            animation: fadeInUp 0.8s ease;
+        }
+
+        .upload-section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            color: white;
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .upload-area {
+            border: 3px dashed rgba(255, 255, 255, 0.4);
+            border-radius: 20px;
+            padding: 50px 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.05);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-area::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .upload-area:hover::before {
+            left: 100%;
+        }
+
+        .upload-area:hover {
+            border-color: rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .upload-area.dragging {
+            border-color: #ffffff;
+            background: rgba(255, 255, 255, 0.15);
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 64px;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 20px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .upload-text {
+            color: white;
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .upload-subtext {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .rename-section {
+            margin-top: 20px;
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .input-group {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(102, 126, 234, 0.7);
+            font-size: 18px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 18px 20px 18px 55px;
+            background: rgba(255, 255, 255, 0.95);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            font-size: 15px;
+            color: #333;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        .file-info {
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            display: none;
+            color: white;
+        }
+
+        .progress-container {
+            margin-top: 20px;
+            display: none;
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            color: white;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 25px;
+            background: rgba(46, 125, 50, 0.2);
+            border-radius: 12px;
+            display: none;
+            animation: fadeIn 0.5s ease;
+            border: 1px solid rgba(76, 175, 80, 0.3);
+        }
+
+        .result-title {
+            color: #4caf50;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .cdn-url-container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .cdn-url {
+            flex: 1;
+            color: #333;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            word-break: break-all;
+            font-weight: 500;
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .error {
+            background: rgba(211, 47, 47, 0.2);
+            color: #ff6b6b;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+            display: none;
+            border: 1px solid rgba(211, 47, 47, 0.3);
+            animation: shake 0.5s ease;
+        }
+
+        .api-section {
+            margin-top: 30px;
+        }
+
+        .api-endpoint {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .api-method {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            margin-right: 10px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .method-post { background: #4caf50; color: white; }
+        .method-get { background: #2196f3; color: white; }
+        .method-delete { background: #f44336; color: white; }
+
+        .api-url {
+            color: rgba(255, 255, 255, 0.9);
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .api-description {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 13px;
+            margin-top: 10px;
+            line-height: 1.6;
+        }
+
+        .code-block {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            overflow-x: auto;
+        }
+
+        .code-block code {
+            color: #a5d6a7;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(76, 175, 80, 0.2);
+            color: #4caf50;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            border: 1px solid rgba(76, 175, 80, 0.3);
+            margin-bottom: 20px;
+        }
+
+        .pulse {
+            width: 8px;
+            height: 8px;
+            background: #4caf50;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <i class="fas fa-cloud-upload-alt"></i> Catbox CDN
+            </div>
+            <div class="tagline">Professional File Hosting & CDN Proxy</div>
+        </div>
+
+        <div class="glass-card">
+            <div class="status-badge">
+                <span class="pulse"></span>
+                <span>Server: <strong id="serverStatus">Loading...</strong></span>
+            </div>
+
+            <div class="upload-section">
+                <div class="section-title">
+                    <i class="fas fa-upload"></i> Upload Files
+                </div>
+
+                <div class="upload-area" id="uploadArea">
+                    <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                    <div class="upload-text">Drop your file here</div>
+                    <div class="upload-subtext">or click to browse • Max 200MB • PDF, EPUB, MOBI, Images</div>
+                    <input type="file" id="fileInput" accept=".pdf,.epub,.mobi,.jpg,.jpeg,.png,.gif">
+                </div>
+
+                <div class="rename-section" id="renameSection">
+                    <div class="input-group">
+                        <i class="fas fa-signature input-icon"></i>
+                        <input type="text" id="customFilename" placeholder="Enter custom filename (optional)">
+                    </div>
+                </div>
+
+                <div class="file-info" id="fileInfo"></div>
+
+                <div class="progress-container" id="progressContainer">
+                    <div class="progress-info">
+                        <span><i class="fas fa-spinner fa-spin"></i> Uploading...</span>
+                        <span id="progressPercent">0%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                </div>
+
+                <div class="error" id="error"></div>
+
+                <div class="result" id="result">
+                    <div class="result-title">
+                        <i class="fas fa-check-circle"></i> Upload Successful!
+                    </div>
+                    <div class="cdn-url-container">
+                        <div class="cdn-url" id="cdnUrl"></div>
+                        <button class="btn btn-primary" onclick="copyUrl()">
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                    </div>
+                    <button class="btn btn-secondary" onclick="resetUpload()">
+                        <i class="fas fa-redo"></i> Upload Another
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-card api-section">
+            <div class="section-title">
+                <i class="fas fa-code"></i> API Documentation
+            </div>
+
+            <div class="api-endpoint">
+                <div>
+                    <span class="api-method method-post">POST</span>
+                    <span class="api-url">/api/upload</span>
+                </div>
+                <div class="api-description">
+                    Upload a file with optional custom filename. Send as multipart/form-data with 'file' and optional 'filename' fields.
+                </div>
+                <div class="code-block"><code>{
+  "success": true,
+  "data": {
+    "cdnUrl": "https://your-cdn.com/file/abc.pdf",
+    "fileId": "abc.pdf",
+    "customName": "mybook.pdf",
+    "size": 1024000
+  }
+}</code></div>
+            </div>
+
+            <div class="api-endpoint">
+                <div>
+                    <span class="api-method method-get">GET</span>
+                    <span class="api-url">/api/files</span>
+                </div>
+                <div class="api-description">
+                    Get a list of all uploaded files with their metadata and CDN URLs.
+                </div>
+                <div class="code-block"><code>{
+  "success": true,
+  "total": 5,
+  "data": [...]
+}</code></div>
+            </div>
+
+            <div class="api-endpoint">
+                <div>
+                    <span class="api-method method-get">GET</span>
+                    <span class="api-url">/api/file/:fileId</span>
+                </div>
+                <div class="api-description">
+                    Get metadata for a specific file by its ID.
+                </div>
+            </div>
+
+            <div class="api-endpoint">
+                <div>
+                    <span class="api-method method-get">GET</span>
+                    <span class="api-url">/file/:fileId</span>
+                </div>
+                <div class="api-description">
+                    Access the actual file content. This URL can be used directly in &lt;img&gt;, &lt;video&gt;, or as a download link.
+                </div>
+            </div>
+
+            <div class="api-endpoint">
+                <div>
+                    <span class="api-method method-delete">DELETE</span>
+                    <span class="api-url">/api/file/:fileId</span>
+                </div>
+                <div class="api-description">
+                    Delete file metadata from the CDN proxy (file remains on Catbox).
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('fileInfo');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressFill = document.getElementById('progressFill');
+        const progressPercent = document.getElementById('progressPercent');
+        const result = document.getElementById('result');
+        const error = document.getElementById('error');
+        const cdnUrlDiv = document.getElementById('cdnUrl');
+        const serverStatus = document.getElementById('serverStatus');
+        const renameSection = document.getElementById('renameSection');
+        const customFilename = document.getElementById('customFilename');
+
+        let selectedFile = null;
+
+        // Auto-detect server URL
+        const serverUrl = window.location.origin;
+        serverStatus.textContent = serverUrl;
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragging');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragging');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragging');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) handleFile(files[0]);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) handleFile(e.target.files[0]);
+        });
+
+        function handleFile(file) {
+            selectedFile = file;
+            
+            const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+            
+            if (file.size > 200 * 1024 * 1024) {
+                showError('File too large! Maximum size is 200MB.');
+                return;
+            }
+            
+            fileInfo.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <i class="fas fa-file" style="font-size: 32px;"></i>
+                    <div style="flex: 1;">
+                        <div style="font-weight: 600; margin-bottom: 5px;">${file.name}</div>
+                        <div style="opacity: 0.8; font-size: 13px;">
+                            <i class="fas fa-weight"></i> ${sizeMB} MB • 
+                            <i class="fas fa-file-code"></i> ${file.type || 'Unknown'}
+                        </div>
+                    </div>
+                </div>
+            `;
+            fileInfo.style.display = 'block';
+            renameSection.style.display = 'block';
+            result.style.display = 'none';
+            error.style.display = 'none';
+            
+            // Set default custom filename
+            const nameWithoutExt = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
+            customFilename.value = nameWithoutExt;
+            
+            uploadFile();
+        }
+
+        async function uploadFile() {
+            if (!selectedFile) return;
+
+            progressContainer.style.display = 'block';
+            progressFill.style.width = '0%';
+            progressPercent.textContent = '0%';
+
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+            
+            // Add custom filename if provided
+            const customName = customFilename.value.trim();
+            if (customName) {
+                formData.append('filename', customName);
+            }
+
+            try {
+                const xhr = new XMLHttpRequest();
+
+                xhr.upload.addEventListener('progress', (e) => {
+                    if (e.lengthComputable) {
+                        const percent = Math.round((e.loaded / e.total) * 100);
+                        progressFill.style.width = percent + '%';
+                        progressPercent.textContent = percent + '%';
+                    }
+                });
+
+                xhr.addEventListener('load', () => {
+                    if (xhr.status === 200) {
+                        try {
+                            const response = JSON.parse(xhr.responseText);
+                            if (response.success) {
+                                showSuccess(response.data);
+                            } else {
+                                showError(response.message || 'Upload failed');
+                            }
+                        } catch (e) {
+                            showError('Invalid response from server');
+                        }
+                    } else {
+                        try {
+                            const errorData = JSON.parse(xhr.responseText);
+                            showError(errorData.message || 'Upload failed');
+                        } catch (e) {
+                            showError('Upload failed with status: ' + xhr.status);
+                        }
+                    }
+                });
+
+                xhr.addEventListener('error', () => {
+                    showError('Network error. Check your connection.');
+                });
+
+                xhr.open('POST', `${serverUrl}/api/upload`);
+                xhr.send(formData);
+
+            } catch (err) {
+                showError('Upload failed: ' + err.message);
+            }
+        }
+
+        function showSuccess(data) {
+            progressContainer.style.display = 'none';
+            result.style.display = 'block';
+            cdnUrlDiv.textContent = data.cdnUrl;
+        }
+
+        function showError(message) {
+            progressContainer.style.display = 'none';
+            error.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${message}`;
+            error.style.display = 'block';
+        }
+
+        function copyUrl() {
+            const url = cdnUrlDiv.textContent;
+            navigator.clipboard.writeText(url).then(() => {
+                const btn = event.target.closest('button');
+                const originalHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                setTimeout(() => {
+                    btn.innerHTML = originalHtml;
+                }, 2000);
+            }).catch(() => {
+                const textArea = document.createElement('textarea');
+                textArea.value = url;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert('URL copied to clipboard!');
+            });
+        }
+
+        function resetUpload() {
+            selectedFile = null;
+            fileInput.value = '';
+            customFilename.value = '';
+            fileInfo.style.display = 'none';
+            renameSection.style.display = 'none';
+            result.style.display = 'none';
+            error.style.display = 'none';
+            progressContainer.style.display = 'none';
+        }
+    </script>
+</body>
+</html>
+
+
+Make search work like actually search things from the database and show sewrch results too
