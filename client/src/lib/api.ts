@@ -40,7 +40,7 @@ export async function downloadBook(bookId: string, fileName: string): Promise<vo
   const data: DownloadResponse = await response.json();
 
   const { fileUrl } = data;
-  
+
   // Create a temporary link and trigger download
   const link = document.createElement('a');
   link.href = fileUrl;
@@ -49,4 +49,14 @@ export async function downloadBook(bookId: string, fileName: string): Promise<vo
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+}
+
+export async function fetchUser() {
+  const response = await fetch('/api/auth/me', {
+    credentials: 'include'
+  });
+  if (!response.ok) {
+    throw new Error('Not authenticated');
+  }
+  return response.json();
 }

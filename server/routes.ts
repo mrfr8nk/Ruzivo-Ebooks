@@ -99,13 +99,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: 'Invalid credentials' });
       }
 
-      // Set session
+      // Set session and save it
       req.session.userId = user.id;
       req.session.username = user.username;
 
-      res.json({ 
-        success: true, 
-        user: { id: user.id, username: user.username } 
+      // Force session save before responding
+      req.session.save((err) => {
+        if (err) {
+          console.error('Session save error:', err);
+          return res.status(500).json({ error: 'Failed to save session' });
+        }
+
+        res.json({ 
+          success: true, 
+          user: { id: user.id, username: user.username } 
+        });
       });
     } catch (error) {
       console.error('Login error:', error);
