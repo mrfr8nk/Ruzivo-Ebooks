@@ -144,8 +144,9 @@ export default function UploadForm() {
       });
 
       xhr.addEventListener('load', () => {
+        setIsUploading(false);
+        
         if (xhr.status === 200 || xhr.status === 201) {
-          setIsUploading(false);
           setUploadProgress(100);
           toast({
             title: "Upload successful! ✓",
@@ -153,19 +154,42 @@ export default function UploadForm() {
           });
           setTimeout(() => setLocation('/'), 1500);
         } else {
-          setIsUploading(false);
           setUploadProgress(0);
           try {
             const error = JSON.parse(xhr.responseText);
-            throw new Error(error.error || 'Upload failed');
+            toast({
+              title: "Upload failed",
+              description: error.error || 'Failed to upload book',
+              variant: "destructive",
+            });
           } catch (e) {
-            throw new Error('Upload failed');
+            toast({
+              title: "Upload failed",
+              description: 'Failed to upload book',
+              variant: "destructive",
+            });
           }
         }
       });
 
       xhr.addEventListener('error', () => {
-        throw new Error('Network error occurred');
+        setIsUploading(false);
+        setUploadProgress(0);
+        toast({
+          title: "Upload failed",
+          description: 'Network error occurred',
+          variant: "destructive",
+        });
+      });
+
+      xhr.addEventListener('abort', () => {
+        setIsUploading(false);
+        setUploadProgress(0);
+        toast({
+          title: "Upload cancelled",
+          description: 'Upload was cancelled',
+          variant: "destructive",
+        });
       });
 
       xhr.open('POST', '/api/books/upload');
@@ -312,7 +336,7 @@ export default function UploadForm() {
             </div>
           </div>
 
-          {bookData.bookType === "Past Exam Paper" && (
+          {(bookData.bookType === "Past Exam Paper" || bookData.bookType === "Marking Scheme") && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="year">Exam Year</Label>
