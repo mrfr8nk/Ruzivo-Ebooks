@@ -193,6 +193,7 @@ export default function UploadForm() {
       });
 
       xhr.open('POST', '/api/books/upload');
+      xhr.withCredentials = true; // Include session cookie
       xhr.send(formData);
 
     } catch (error) {
