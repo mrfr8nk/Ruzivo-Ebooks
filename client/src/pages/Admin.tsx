@@ -13,6 +13,7 @@ export default function Admin() {
   const [credentials, setCredentials] = useState({ username: "", password: "" });
   const [stats, setStats] = useState<any>(null);
   const [filterBookType, setFilterBookType] = useState<string>("all");
+  const [usersWithUploads, setUsersWithUploads] = useState<any[]>([]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,10 +51,28 @@ export default function Admin() {
     }
   };
 
+  const loadUsersWithUploads = async () => {
+    try {
+      const response = await fetch('/api/admin/users-uploads', {
+        credentials: 'include'
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setUsersWithUploads(data);
+      }
+    } catch (error) {
+      console.error('Failed to load users with uploads:', error);
+    }
+  };
+
   useEffect(() => {
     if (isLoggedIn) {
       loadStats();
-      const interval = setInterval(loadStats, 30000); // Refresh every 30 seconds
+      loadUsersWithUploads();
+      const interval = setInterval(() => {
+        loadStats();
+        loadUsersWithUploads();
+      }, 30000); // Refresh every 30 seconds
       return () => clearInterval(interval);
     }
   }, [isLoggedIn]);
@@ -69,6 +88,7 @@ export default function Admin() {
       if (response.ok) {
         toast({ title: "Book deleted successfully" });
         await loadStats();
+        await loadUsersWithUploads();
       } else {
         const error = await response.json();
         toast({ title: "Error", description: error.error || "Failed to delete book", variant: "destructive" });
@@ -363,6 +383,66 @@ export default function Admin() {
               ).length === 0 && (
                 <div className="text-center py-8 text-muted-foreground">
                   <p>No books found for the selected type</p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Users & Uploads Section */}
+        <Card className="border-2 border-sky-200/50">
+          <CardHeader>
+            <CardTitle className="text-2xl flex items-center gap-2">
+              <Users className="h-6 w-6 text-sky-500" />
+              Registered Users & Uploads
+            </CardTitle>
+            <CardDescription>View all registered users and their upload statistics</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {usersWithUploads.map((user, index) => (
+                <div 
+                  key={user.username} 
+                  className="border border-sky-200/50 rounded-lg p-4 hover:border-sky-300 transition-all bg-gradient-to-r from-sky-50/50 to-blue-50/50 dark:from-gray-800/50 dark:to-sky-900/50"
+                  data-testid={`user-row-${index}`}
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-sky-500 to-blue-600 flex items-center justify-center text-white font-bold text-lg">
+                        {user.username.charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-lg" data-testid={`user-username-${index}`}>{user.username}</p>
+                        <p className="text-sm text-muted-foreground">
+                          <span className="font-semibold text-sky-600" data-testid={`user-upload-count-${index}`}>{user.uploadCount}</span> total uploads
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  {user.books.length > 0 && (
+                    <div className="mt-3 space-y-1">
+                      <p className="text-sm font-medium text-muted-foreground mb-2">Uploaded Books:</p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        {user.books.map((book: any, bookIndex: number) => (
+                          <div 
+                            key={book._id} 
+                            className="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded border border-sky-100 dark:border-sky-800"
+                            data-testid={`book-item-${index}-${bookIndex}`}
+                          >
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium truncate">{book.title}</p>
+                              <p className="text-xs text-muted-foreground">{book.level} • {book.downloads} downloads</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+              {usersWithUploads.length === 0 && (
+                <div className="text-center py-8 text-muted-foreground">
+                  <p>No users found</p>
                 </div>
               )}
             </div>
