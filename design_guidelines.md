@@ -1,4 +1,4 @@
-# Ruzivo Ebooks - Design Guidelines
+# MasterMinds Ebooks - Design Guidelines
 
 ## Design Approach
 

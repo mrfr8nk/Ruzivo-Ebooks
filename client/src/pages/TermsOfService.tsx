@@ -55,7 +55,7 @@ export default function TermsOfService() {
             <section className="mb-8">
               <h2 className="text-2xl font-bold mb-4">Content and Copyright</h2>
               <p className="text-muted-foreground mb-4">
-                Educational materials on Ruzivo Ebooks are provided for educational purposes only. Users who upload content represent that they have the right to share such materials.
+                Educational materials on MasterMinds Ebooks are provided for educational purposes only. Users who upload content represent that they have the right to share such materials.
               </p>
               <p className="text-muted-foreground">
                 We respect intellectual property rights. If you believe any content infringes on your copyright, please contact us immediately.
@@ -65,14 +65,14 @@ export default function TermsOfService() {
             <section className="mb-8">
               <h2 className="text-2xl font-bold mb-4">Disclaimer</h2>
               <p className="text-muted-foreground">
-                Ruzivo Ebooks is provided "as is" without any warranties, expressed or implied. We do not guarantee the accuracy, completeness, or reliability of any content on the platform. Use of the platform is at your own risk.
+                MasterMinds Ebooks is provided "as is" without any warranties, expressed or implied. We do not guarantee the accuracy, completeness, or reliability of any content on the platform. Use of the platform is at your own risk.
               </p>
             </section>
 
             <section className="mb-8">
               <h2 className="text-2xl font-bold mb-4">Limitation of Liability</h2>
               <p className="text-muted-foreground">
-                Ruzivo Ebooks and its creator shall not be liable for any indirect, incidental, special, consequential, or punitive damages resulting from your use or inability to use the platform.
+                MasterMinds Ebooks and its creator shall not be liable for any indirect, incidental, special, consequential, or punitive damages resulting from your use or inability to use the platform.
               </p>
             </section>
 

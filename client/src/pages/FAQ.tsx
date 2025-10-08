@@ -6,7 +6,7 @@ export default function FAQ() {
   const faqs = [
     {
       question: "Is Ruzivo Ebooks really free?",
-      answer: "Yes! Ruzivo Ebooks is completely free to use. You can browse, download, and access all educational materials without any subscription fees or hidden costs. We believe education should be accessible to everyone."
+      answer: "Yes! MasterMinds Ebooks is completely free to use. You can browse, download, and access all educational materials without any subscription fees or hidden costs. We believe education should be accessible to everyone."
     },
     {
       question: "What types of materials are available?",
@@ -50,7 +50,7 @@ export default function FAQ() {
     },
     {
       question: "How do I report a problem or bug?",
-      answer: "You can report issues through our Contact page or email us at support@ruzivoebooks.com. We appreciate your feedback and work quickly to resolve any problems."
+      answer: "You can report issues through our Contact page or email us at support@mastermindz.com. We appreciate your feedback and work quickly to resolve any problems."
     }
   ];
 

@@ -31,7 +31,7 @@ export default function Footer() {
               </div>
               <div>
                 <div className="font-bold text-2xl bg-gradient-to-r from-sky-300 to-blue-300 bg-clip-text text-transparent">
-                  Ruzivo Ebooks
+                  MasterMinds Ebooks
                 </div>
                 <div className="text-xs text-sky-400">by Darrell Mucheri</div>
               </div>
@@ -153,7 +153,7 @@ export default function Footer() {
         <div className="flex flex-col md:flex-row justify-between items-center gap-6 pt-8">
           <div className="text-center md:text-left">
             <p className="text-gray-400 text-sm">
-              © 2024 Ruzivo Ebooks. All rights reserved.
+              © 2024 MasterMinds Ebooks. All rights reserved.
             </p>
             <p className="text-sky-400 text-sm mt-1 flex items-center gap-2 justify-center md:justify-start">
               Made with <Heart className="w-4 h-4 text-red-400 animate-pulse" /> by Darrell Mucheri

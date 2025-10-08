@@ -53,7 +53,7 @@ export default function BookCard({ id, title, author, level, form, coverUrl, dow
       const originalFileName = data.fileName;
       const fileExtension = originalFileName.substring(originalFileName.lastIndexOf('.'));
       const fileNameWithoutExt = originalFileName.substring(0, originalFileName.lastIndexOf('.'));
-      const newFileName = `${fileNameWithoutExt}_downloaded_from_ruzivoMaths${fileExtension}`;
+      const newFileName = `${fileNameWithoutExt}_downloaded_from_mastermindz_ebooks${fileExtension}`;
 
       // Create download link
       const link = document.createElement('a');

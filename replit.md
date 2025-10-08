@@ -1,8 +1,8 @@
-# Ruzivo Ebooks - Educational Platform
+# MasterMinds Ebooks - Educational Platform
 
 ## Overview
 
-Ruzivo Ebooks is an educational platform designed to provide ZIMSEC (Zimbabwe Schools Examination Council) students with accessible O-Level and A-Level study resources. The platform enables students to discover, browse, and download educational ebooks while also allowing contributors to upload and share educational materials. Built with a focus on clarity, accessibility, and academic credibility, the application features a clean, distraction-free learning environment optimized for mobile-first student usage.
+MasterMinds Ebooks is an educational platform designed to provide ZIMSEC (Zimbabwe Schools Examination Council) students with accessible O-Level and A-Level study resources. The platform enables students to discover, browse, and download educational ebooks while also allowing contributors to upload and share educational materials. Built with a focus on clarity, accessibility, and academic credibility, the application features a clean, distraction-free learning environment optimized for mobile-first student usage.
 
 ## User Preferences
 

@@ -10,7 +10,7 @@ export default function About() {
             <BookOpen className="w-12 h-12 text-white" />
           </div>
           <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-sky-600 to-blue-600 bg-clip-text text-transparent">
-            About Ruzivo Ebooks
+            About MasterMinds Ebooks
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Empowering ZIMSEC students with accessible, high-quality educational resources
@@ -21,13 +21,13 @@ export default function About() {
           <h2 className="text-2xl font-bold mb-4">Our Story</h2>
           <div className="space-y-4 text-muted-foreground">
             <p>
-              Ruzivo Ebooks was created by Darrell Mucheri with a simple yet powerful mission: to make quality educational resources accessible to every ZIMSEC student, regardless of their location or economic background.
+              MasterMinds Ebooks was created by Darrell Mucheri with a simple yet powerful mission: to make quality educational resources accessible to every ZIMSEC student, regardless of their location or economic background.
             </p>
             <p>
               Understanding the challenges students face in accessing textbooks, past exam papers, and study materials, we built this platform to bridge the gap between students and the resources they need to excel in their studies.
             </p>
             <p>
-              Today, Ruzivo Ebooks serves thousands of students across Zimbabwe, providing free access to O-Level and A-Level materials, past papers, and study guides.
+              Today, MasterMinds Ebooks serves thousands of students across Zimbabwe, providing free access to O-Level and A-Level materials, past papers, and study guides.
             </p>
           </div>
         </Card>
