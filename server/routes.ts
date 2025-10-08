@@ -160,16 +160,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const bookData = {
         title: req.body.title,
-        author: req.body.author,
-        bookType: req.body.bookType,
-        curriculum: req.body.curriculum,
-        level: req.body.level,
-        form: req.body.form,
+        author: req.body.author || undefined,
+        bookType: req.body.bookType || undefined,
+        curriculum: req.body.curriculum || undefined,
+        level: req.body.level || undefined,
+        form: req.body.form || undefined,
         year: req.body.year || undefined,
         examSession: req.body.examSession || undefined,
-        description: req.body.description,
+        description: req.body.description || undefined,
         tags: req.body.tags ? JSON.parse(req.body.tags) : [],
-        coverUrl: req.body.coverUrl,
+        coverUrl: req.body.coverUrl || undefined,
         uploadedBy: req.session.username!, // Use authenticated user's username
       };
 

@@ -9,6 +9,21 @@ import { useQuery } from "@tanstack/react-query";
 export default function Hero() {
   const [searchQuery, setSearchQuery] = useState("");
 
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      const searchSection = document.getElementById('search-section');
+      const searchInput = document.getElementById('main-search-input') as HTMLInputElement;
+      if (searchInput) {
+        searchInput.value = searchQuery;
+        searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+      if (searchSection) {
+        searchSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+  };
+
   const { data: topUploaders = [] } = useQuery<Array<{ username: string; uploadCount: number }>>({
     queryKey: ['/api/top-uploaders'],
   });
@@ -42,16 +57,17 @@ export default function Hero() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16 animate-scale-in">
-            <div className="relative w-full max-w-md group">
+            <form onSubmit={handleSearch} className="relative w-full max-w-md group">
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 z-10 transition-all group-hover:text-sky-500" />
               <Input
                 placeholder="Search for books, authors, subjects..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch(e)}
                 className="pl-12 h-14 backdrop-blur-xl bg-white/95 border-2 border-white/30 text-gray-900 placeholder:text-gray-500 focus:bg-white focus:border-sky-400 transition-all duration-300 shadow-xl hover:shadow-2xl rounded-xl"
                 data-testid="input-search"
               />
-            </div>
+            </form>
             <Link href="/upload">
               <Button size="lg" className="gap-2 h-14 px-8 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white shadow-2xl hover:shadow-sky-500/50 transition-all duration-300 hover:scale-105 rounded-xl font-semibold" data-testid="button-upload">
                 <Upload className="w-5 h-5" />

@@ -85,6 +85,10 @@ export default function UploadForm() {
         return;
       }
       setFile(selectedFile);
+      
+      // Auto-fill title from filename (remove extension)
+      const fileNameWithoutExtension = selectedFile.name.replace(/\.(pdf|epub)$/i, '');
+      setBookData(prev => ({ ...prev, title: fileNameWithoutExtension }));
     }
   };
 
@@ -100,28 +104,10 @@ export default function UploadForm() {
       return;
     }
 
-    if (!bookData.title || !bookData.author || !bookData.curriculum || !bookData.level || !bookData.form || !bookData.bookType || !bookData.description) {
+    if (!bookData.title) {
       toast({
-        title: "Missing information",
-        description: "Please fill in all required fields",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (bookData.bookType === "Past Exam Paper" && !bookData.year) {
-      toast({
-        title: "Missing year",
-        description: "Please enter the exam year for past papers",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (selectedTags.length === 0) {
-      toast({
-        title: "No tags selected",
-        description: "Please select at least one tag",
+        title: "Missing title",
+        description: "Please enter a book title",
         variant: "destructive",
       });
       return;
@@ -134,20 +120,19 @@ export default function UploadForm() {
       const formData = new FormData();
       formData.append('file', file);
       formData.append('title', bookData.title);
-      formData.append('author', bookData.author);
-      formData.append('curriculum', bookData.curriculum);
-      formData.append('level', bookData.level);
-      formData.append('form', bookData.form);
-      formData.append('coverUrl', bookData.coverUrl);
-      formData.append('bookType', bookData.bookType);
-      formData.append('description', bookData.description);
+      
+      // Only append optional fields if they have values
+      if (bookData.author) formData.append('author', bookData.author);
+      if (bookData.curriculum) formData.append('curriculum', bookData.curriculum);
+      if (bookData.level) formData.append('level', bookData.level);
+      if (bookData.form) formData.append('form', bookData.form);
+      if (bookData.coverUrl) formData.append('coverUrl', bookData.coverUrl);
+      if (bookData.bookType) formData.append('bookType', bookData.bookType);
+      if (bookData.description) formData.append('description', bookData.description);
+      if (bookData.year) formData.append('year', bookData.year);
+      if (bookData.examSession) formData.append('examSession', bookData.examSession);
+      
       formData.append('tags', JSON.stringify(selectedTags));
-      if (bookData.bookType === "Past Exam Paper") {
-        formData.append('year', bookData.year);
-        formData.append('examSession', bookData.examSession || 'N/A');
-      } else {
-        formData.append('examSession', 'N/A');
-      }
 
       const xhr = new XMLHttpRequest();
 
@@ -160,8 +145,10 @@ export default function UploadForm() {
 
       xhr.addEventListener('load', () => {
         if (xhr.status === 200) {
+          setIsUploading(false);
+          setUploadProgress(100);
           toast({
-            title: "Upload successful",
+            title: "Upload successful! ✓",
             description: "Your book has been uploaded successfully",
           });
           setTimeout(() => setLocation('/'), 1500);
@@ -242,7 +229,7 @@ export default function UploadForm() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="author">Author</Label>
+              <Label htmlFor="author">Author <span className="text-muted-foreground text-sm">(Optional)</span></Label>
               <Input
                 id="author"
                 placeholder="e.g., John Doe"
@@ -256,7 +243,7 @@ export default function UploadForm() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="curriculum">Curriculum</Label>
+              <Label htmlFor="curriculum">Curriculum <span className="text-muted-foreground text-sm">(Optional)</span></Label>
               <Select value={bookData.curriculum} onValueChange={(value) => setBookData({ ...bookData, curriculum: value })} disabled={isUploading}>
                 <SelectTrigger id="curriculum" data-testid="select-curriculum">
                   <SelectValue placeholder="Select curriculum" />
@@ -270,7 +257,7 @@ export default function UploadForm() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="level">Level</Label>
+              <Label htmlFor="level">Level <span className="text-muted-foreground text-sm">(Optional)</span></Label>
               <Select value={bookData.level} onValueChange={(value) => setBookData({ ...bookData, level: value })} disabled={isUploading}>
                 <SelectTrigger id="level" data-testid="select-level">
                   <SelectValue placeholder="Select level" />
@@ -285,7 +272,7 @@ export default function UploadForm() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="form">Form/Grade</Label>
+              <Label htmlFor="form">Form/Grade <span className="text-muted-foreground text-sm">(Optional)</span></Label>
               <Select value={bookData.form} onValueChange={(value) => setBookData({ ...bookData, form: value })} disabled={isUploading}>
                 <SelectTrigger id="form" data-testid="select-form">
                   <SelectValue placeholder="Select form" />
@@ -302,7 +289,7 @@ export default function UploadForm() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="bookType">Book Type</Label>
+              <Label htmlFor="bookType">Book Type <span className="text-muted-foreground text-sm">(Optional)</span></Label>
               <Select value={bookData.bookType} onValueChange={(value) => setBookData({ ...bookData, bookType: value })} disabled={isUploading}>
                 <SelectTrigger id="bookType" data-testid="select-book-type">
                   <SelectValue placeholder="Select book type" />
@@ -349,7 +336,7 @@ export default function UploadForm() {
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">Description <span className="text-muted-foreground text-sm">(Optional)</span></Label>
             <Textarea
               id="description"
               placeholder="e.g., O level Mathematics June 2025 Paper 1, or New General Mathematics Book 4, or O level Mathematics syllabus 2017-2022"
@@ -362,7 +349,7 @@ export default function UploadForm() {
           </div>
 
           <div className="space-y-3">
-            <Label>Tags (Select at least one)</Label>
+            <Label>Tags <span className="text-muted-foreground text-sm">(Optional)</span></Label>
             
             <div className="space-y-3">
               <div>

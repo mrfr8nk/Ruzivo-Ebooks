@@ -136,11 +136,12 @@ export default function Home() {
         </div>
 
         {/* Search and Filter Section */}
-        <div className="mb-12 backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 rounded-2xl p-6 border-2 border-sky-200/50 dark:border-sky-700/50 shadow-xl animate-slide-in-up">
+        <div id="search-section" className="mb-12 backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 rounded-2xl p-6 border-2 border-sky-200/50 dark:border-sky-700/50 shadow-xl animate-slide-in-up">
           <div className="flex items-center gap-4 mb-4">
             <div className="relative flex-1">
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-sky-500" />
               <Input
+                id="main-search-input"
                 placeholder="Search books by title or author..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
