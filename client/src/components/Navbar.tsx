@@ -132,13 +132,6 @@ export default function Navbar() {
             >
               {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </Button>
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="text-sky-200 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-xl"
-              data-testid="button-mobile-menu"
-            >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
           </div>
 
           {/* Mobile Menu Trigger */}
