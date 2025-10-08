@@ -70,8 +70,17 @@ app.use(async (req, res, next) => {
 
 // Maintenance mode middleware - allow admin routes
 app.use(async (req, res, next) => {
-  // Skip maintenance check for admin routes and API endpoints
-  if (req.path.startsWith('/api/admin') || req.path === '/admin') {
+  // Skip maintenance check for admin routes, API endpoints, and static assets
+  if (req.path.startsWith('/api/admin') || 
+      req.path === '/admin' || 
+      req.path.startsWith('/assets') || 
+      req.path.startsWith('/@') ||
+      req.path.includes('.js') || 
+      req.path.includes('.css') || 
+      req.path.includes('.png') || 
+      req.path.includes('.jpg') || 
+      req.path.includes('.svg') ||
+      req.path === '/favicon.ico') {
     return next();
   }
 
