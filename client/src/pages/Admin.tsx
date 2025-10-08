@@ -65,7 +65,7 @@ export default function Admin() {
     const params = new URLSearchParams(window.location.search);
     const maintenanceMode = params.get('maintenance');
     const maintenanceMsg = params.get('message');
-    
+
     if (maintenanceMode === 'true') {
       setMaintenance({ 
         isLocked: true, 
@@ -115,41 +115,62 @@ export default function Admin() {
   if (!isLoggedIn) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-sky-50 to-blue-50 dark:from-gray-900 dark:to-sky-950 px-4">
-        <Card className="w-full max-w-md shadow-2xl border-2 border-sky-200/50">
-          <CardHeader className="text-center">
-            <div className="mx-auto mb-4 w-16 h-16 bg-gradient-to-br from-sky-500 to-blue-600 rounded-2xl flex items-center justify-center">
-              <Lock className="w-8 h-8 text-white" />
-            </div>
-            <CardTitle className="text-2xl">Admin Portal</CardTitle>
-            <CardDescription>Secure access to dashboard analytics</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleLogin} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="username">Username</Label>
-                <Input
-                  id="username"
-                  value={credentials.username}
-                  onChange={(e) => setCredentials({ ...credentials, username: e.target.value })}
-                  className="border-sky-200 focus:border-sky-400"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={credentials.password}
-                  onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
-                  className="border-sky-200 focus:border-sky-400"
-                />
-              </div>
-              <Button type="submit" className="w-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700">
-                Login to Dashboard
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
+        <div className="w-full max-w-md space-y-4">
+          {/* Maintenance Mode Alert */}
+          {maintenance.isLocked && (
+            <Card className="border-2 border-orange-500 bg-orange-50 dark:bg-orange-950/30">
+              <CardContent className="pt-6">
+                <div className="flex items-start gap-3">
+                  <Lock className="h-6 w-6 text-orange-600 dark:text-orange-400 mt-1" />
+                  <div className="flex-1">
+                    <h3 className="font-bold text-orange-800 dark:text-orange-400 mb-2">
+                      🚧 Site Under Maintenance
+                    </h3>
+                    <p className="text-sm text-orange-700 dark:text-orange-300 mb-2">
+                      {maintenance.message || 'The site is currently undergoing maintenance. Please check back soon.'}
+                    </p>
+                    <p className="text-xs text-orange-600 dark:text-orange-400">
+                      Admin access is still available below.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Login Card */}
+          <Card className="w-full">
+            <CardHeader>
+              <CardTitle className="text-2xl text-center">Admin Login</CardTitle>
+              <CardDescription className="text-center">Enter your credentials to access the admin dashboard</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleLogin} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="username">Username</Label>
+                  <Input
+                    id="username"
+                    type="text"
+                    value={credentials.username}
+                    onChange={(e) => setCredentials({ ...credentials, username: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    value={credentials.password}
+                    onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
+                    required
+                  />
+                </div>
+                <Button type="submit" className="w-full">Login</Button>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
