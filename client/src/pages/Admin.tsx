@@ -4,8 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { BookOpen, Users, Download, Lock, Unlock, Trash2, TrendingUp, Calendar, Clock, BarChart3, PieChart, Activity } from "lucide-react";
-import { Switch } from "@/components/ui/switch";
+import { BookOpen, Users, Download, Trash2, TrendingUp, Calendar, Clock, BarChart3, PieChart, Activity } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function Admin() {
@@ -13,7 +12,6 @@ export default function Admin() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [credentials, setCredentials] = useState({ username: "", password: "" });
   const [stats, setStats] = useState<any>(null);
-  const [maintenance, setMaintenance] = useState({ isLocked: false, message: "" });
   const [filterBookType, setFilterBookType] = useState<string>("all");
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -60,20 +58,6 @@ export default function Admin() {
     }
   }, [isLoggedIn]);
 
-  // Check for maintenance mode from URL params
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const maintenanceMode = params.get('maintenance');
-    const maintenanceMsg = params.get('message');
-
-    if (maintenanceMode === 'true') {
-      setMaintenance({ 
-        isLocked: true, 
-        message: maintenanceMsg || 'Site is under maintenance' 
-      });
-    }
-  }, []);
-
   const handleDeleteBook = async (bookId: string) => {
     if (!confirm('Are you sure you want to delete this book?')) return;
 
@@ -94,52 +78,10 @@ export default function Admin() {
     }
   };
 
-  const handleMaintenanceToggle = async (isLocked: boolean) => {
-    try {
-      const response = await fetch('/api/admin/maintenance', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isLocked, message: maintenance.message }),
-        credentials: 'include'
-      });
-
-      if (response.ok) {
-        setMaintenance({ ...maintenance, isLocked });
-        toast({ title: `Site ${isLocked ? 'locked' : 'unlocked'}` });
-      }
-    } catch (error) {
-      toast({ title: "Error", description: "Failed to update maintenance mode", variant: "destructive" });
-    }
-  };
-
   if (!isLoggedIn) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-sky-50 to-blue-50 dark:from-gray-900 dark:to-sky-950 px-4">
-        <div className="w-full max-w-md space-y-4">
-          {/* Maintenance Mode Alert */}
-          {maintenance.isLocked && (
-            <Card className="border-2 border-orange-500 bg-orange-50 dark:bg-orange-950/30">
-              <CardContent className="pt-6">
-                <div className="flex items-start gap-3">
-                  <Lock className="h-6 w-6 text-orange-600 dark:text-orange-400 mt-1" />
-                  <div className="flex-1">
-                    <h3 className="font-bold text-orange-800 dark:text-orange-400 mb-2">
-                      🚧 Site Under Maintenance
-                    </h3>
-                    <p className="text-sm text-orange-700 dark:text-orange-300 mb-2">
-                      {maintenance.message || 'The site is currently undergoing maintenance. Please check back soon.'}
-                    </p>
-                    <p className="text-xs text-orange-600 dark:text-orange-400">
-                      Admin access is still available below.
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Login Card */}
-          <Card className="w-full">
+        <Card className="w-full max-w-md">
             <CardHeader>
               <CardTitle className="text-2xl text-center">Admin Login</CardTitle>
               <CardDescription className="text-center">Enter your credentials to access the admin dashboard</CardDescription>
@@ -187,22 +129,6 @@ export default function Admin() {
           </div>
           <Button variant="outline" onClick={() => setIsLoggedIn(false)}>Logout</Button>
         </div>
-
-        {/* Maintenance Mode Banner */}
-        {maintenance.isLocked && (
-          <div className="mb-8 p-4 bg-orange-100 dark:bg-orange-900/30 border-2 border-orange-500 rounded-lg">
-            <div className="flex items-center gap-3">
-              <Lock className="h-6 w-6 text-orange-600" />
-              <div>
-                <h3 className="font-bold text-orange-800 dark:text-orange-400">Site Under Maintenance</h3>
-                <p className="text-sm text-orange-700 dark:text-orange-300">
-                  The site is currently locked. Only admin routes are accessible.
-                  {maintenance.message && ` Message: ${maintenance.message}`}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Main Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -377,30 +303,6 @@ export default function Admin() {
                 </div>
               ))}
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Maintenance Mode */}
-        <Card className="mb-8 border-2 border-orange-200/50">
-          <CardHeader>
-            <CardTitle>Site Maintenance</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                {maintenance.isLocked ? <Lock className="h-5 w-5 text-red-500" /> : <Unlock className="h-5 w-5 text-green-500" />}
-                <Label>Lock Site for Maintenance</Label>
-              </div>
-              <Switch
-                checked={maintenance.isLocked}
-                onCheckedChange={handleMaintenanceToggle}
-              />
-            </div>
-            <Input
-              placeholder="Maintenance message..."
-              value={maintenance.message}
-              onChange={(e) => setMaintenance({ ...maintenance, message: e.target.value })}
-            />
           </CardContent>
         </Card>
 

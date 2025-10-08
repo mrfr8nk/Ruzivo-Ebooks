@@ -330,21 +330,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Set site maintenance
-  app.post('/api/admin/maintenance', async (req, res) => {
-    try {
-      const { authenticateAdmin, setSiteMaintenance } = await import('./admin');
-      authenticateAdmin(req as any, res, async () => {
-        const { isLocked, message } = req.body;
-        await setSiteMaintenance(isLocked, message);
-        res.json({ success: true });
-      });
-    } catch (error) {
-      console.error('Maintenance error:', error);
-      res.status(500).json({ error: 'Failed to set maintenance mode' });
-    }
-  });
-
   // Increment downloads (called when user downloads a book)
   app.post('/api/books/:id/download', async (req, res) => {
     try {
