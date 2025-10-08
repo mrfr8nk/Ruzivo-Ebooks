@@ -1,12 +1,17 @@
 
-import { Search, Upload, BookOpen, TrendingUp, Users, Download } from "lucide-react";
+import { Search, Upload, BookOpen, TrendingUp, Users, Download, Trophy, Award } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 
 export default function Hero() {
   const [searchQuery, setSearchQuery] = useState("");
+
+  const { data: topUploaders = [] } = useQuery<Array<{ username: string; uploadCount: number }>>({
+    queryKey: ['/api/top-uploaders'],
+  });
 
   return (
     <div className="relative overflow-hidden bg-gradient-to-br from-[#001F3F] via-[#003366] to-[#004C8C]">
@@ -78,6 +83,55 @@ export default function Hero() {
               );
             })}
           </div>
+
+          {/* Top Uploaders */}
+          {topUploaders.length > 0 && (
+            <div className="mt-16 max-w-5xl mx-auto animate-fade-in">
+              <div className="flex items-center justify-center gap-3 mb-8">
+                <Trophy className="w-6 h-6 text-yellow-400" />
+                <h2 className="text-3xl font-bold text-white">Top Contributors</h2>
+                <Trophy className="w-6 h-6 text-yellow-400" />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                {topUploaders.slice(0, 10).map((uploader, index) => (
+                  <div
+                    key={uploader.username}
+                    className="group relative backdrop-blur-xl bg-white/10 hover:bg-white/20 border border-white/20 hover:border-yellow-400/50 rounded-xl p-4 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-yellow-500/20"
+                    data-testid={`uploader-card-${index}`}
+                  >
+                    {index < 3 && (
+                      <div className="absolute -top-2 -right-2">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                          index === 0 ? 'bg-yellow-400' : index === 1 ? 'bg-gray-300' : 'bg-amber-600'
+                        } text-white font-bold text-sm shadow-lg`}>
+                          {index + 1}
+                        </div>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center bg-gradient-to-br ${
+                        index === 0 ? 'from-yellow-400 to-yellow-600' :
+                        index === 1 ? 'from-gray-300 to-gray-500' :
+                        index === 2 ? 'from-amber-600 to-amber-800' :
+                        'from-sky-400 to-blue-500'
+                      } text-white font-bold text-lg shadow-lg`}>
+                        {uploader.username.charAt(0).toUpperCase()}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-white font-semibold truncate" data-testid={`text-username-${index}`}>
+                          {uploader.username}
+                        </div>
+                        <div className="text-sky-200/80 text-sm flex items-center gap-1">
+                          <BookOpen className="w-3 h-3" />
+                          <span data-testid={`text-upload-count-${index}`}>{uploader.uploadCount} uploads</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
