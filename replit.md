@@ -48,15 +48,16 @@ Preferred communication style: Simple, everyday language.
 **Storage Strategy**: The application uses an abstracted storage pattern with an in-memory implementation (MemStorage) that can be swapped for database-backed storage, demonstrating flexibility in data persistence approaches.
 
 ### File Storage & Management
-- **File Storage Provider**: Custom CDN service powered by Catbox (https://catboxcdn.onrender.com)
-- **CDN Architecture**: Self-hosted proxy CDN that uploads files to Catbox.moe and serves them through custom domain
+- **File Storage Provider**: Catbox.moe cloud file hosting (integrated directly into app)
+- **Upload Architecture**: Direct upload to Catbox.moe API from the application server
 - **Upload Flow**: 
   1. Files uploaded via Multer to memory
   2. Processed and validated on server
-  3. Uploaded to custom CDN with unique timestamped filenames
-  4. Public CDN URLs generated and stored in MongoDB
+  3. Uploaded directly to Catbox.moe with unique timestamped filenames
+  4. Catbox public URLs stored in MongoDB
 - **File Constraints**: 500MB upload limit, PDF, EPUB, DOC, DOCX, PPT, and PPTX formats
 - **Security**: File type validation, sanitized filenames, public URL generation
+- **Catbox Configuration**: Uses dedicated user hash for file management
 
 ### Authentication & Authorization
 Currently implements basic user schema with username/password fields, indicating planned authentication system. No active authentication middleware is currently enforced on routes.
@@ -64,11 +65,12 @@ Currently implements basic user schema with username/password fields, indicating
 ## External Dependencies
 
 ### Third-Party Services
-- **Custom CDN**: Self-hosted CDN proxy service for ebook file hosting and delivery
-  - Service URL: `https://catboxcdn.onrender.com`
-  - Backend Storage: Catbox.moe cloud file hosting
-  - Public file access via CDN proxy URLs
+- **Catbox.moe**: Cloud file hosting service for ebook storage
+  - API URL: `https://catbox.moe/user/api.php`
+  - Direct upload integration from application
+  - Public file access via Catbox URLs (https://files.catbox.moe/)
   - Supports files up to 500MB
+  - User hash authentication for file management
 
 ### Database
 - **PostgreSQL**: Primary database via Neon serverless (@neondatabase/serverless)
