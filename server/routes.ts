@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import multer from "multer";
 import bcrypt from "bcryptjs";
 import { storage } from "./storage";
-import { uploadFileToSupabase, uploadThumbnailToSupabase } from "./supabase";
+import { uploadFileToCDN, uploadThumbnailToCDN } from "./cdn";
 import { insertBookSchema, bookMetadataSchema, insertUserSchema } from "@shared/schema";
 import { generatePdfThumbnail } from "./pdfThumbnail";
 
@@ -192,8 +192,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const fileName = `${sanitizedTitle}_${timestamp}.${fileExtension}`;
       const fileSize = req.file.size;
 
-      // Upload to Supabase
-      const fileUrl = await uploadFileToSupabase(req.file, fileName);
+      // Upload to CDN
+      const fileUrl = await uploadFileToCDN(req.file, fileName);
 
       // Generate thumbnail for PDFs
       let coverUrl = bookData.coverUrl;
@@ -201,7 +201,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         try {
           const thumbnailBuffer = await generatePdfThumbnail(req.file.buffer);
           const thumbnailFileName = `${sanitizedTitle}_${timestamp}_thumb.jpg`;
-          coverUrl = await uploadThumbnailToSupabase(thumbnailBuffer, thumbnailFileName);
+          coverUrl = await uploadThumbnailToCDN(thumbnailBuffer, thumbnailFileName);
         } catch (error) {
           console.error('Thumbnail generation failed:', error);
           // Use fallback PDF image
