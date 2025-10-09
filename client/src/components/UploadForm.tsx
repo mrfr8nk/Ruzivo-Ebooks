@@ -66,11 +66,11 @@ export default function UploadForm() {
       const selectedFiles = Array.from(e.target.files);
       
       // Check file sizes
-      const oversizedFiles = selectedFiles.filter(f => f.size > 50 * 1024 * 1024);
+      const oversizedFiles = selectedFiles.filter(f => f.size > 500 * 1024 * 1024);
       if (oversizedFiles.length > 0) {
         toast({
           title: "File too large",
-          description: `${oversizedFiles.length} file(s) exceed 50MB limit`,
+          description: `${oversizedFiles.length} file(s) exceed 500MB limit`,
           variant: "destructive",
         });
         e.target.value = '';
@@ -91,6 +91,38 @@ export default function UploadForm() {
 
   const removeFile = (index: number) => {
     setFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const uploadFileWithProgress = (formData: FormData): Promise<Response> => {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+
+      xhr.upload.addEventListener('progress', (e) => {
+        if (e.lengthComputable) {
+          const percentComplete = (e.loaded / e.total) * 100;
+          setUploadProgress(percentComplete);
+        }
+      });
+
+      xhr.addEventListener('load', () => {
+        const response = new Response(xhr.responseText, {
+          status: xhr.status,
+          statusText: xhr.statusText,
+          headers: new Headers({
+            'Content-Type': xhr.getResponseHeader('Content-Type') || 'application/json'
+          })
+        });
+        resolve(response);
+      });
+
+      xhr.addEventListener('error', () => {
+        reject(new Error('Upload failed'));
+      });
+
+      xhr.open('POST', '/api/books/upload');
+      xhr.withCredentials = true;
+      xhr.send(formData);
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -143,15 +175,12 @@ export default function UploadForm() {
         
         formData.append('tags', JSON.stringify(selectedTags));
 
-        const response = await fetch('/api/books/upload', {
-          method: 'POST',
-          body: formData,
-          credentials: 'include',
-        });
+        // Reset progress for each file
+        setUploadProgress(0);
+        const response = await uploadFileWithProgress(formData);
 
         if (response.ok) {
           successCount++;
-          setUploadProgress(((i + 1) / totalFiles) * 100);
         } else {
           const error = await response.json();
           console.error(`Failed to upload ${file.name}:`, error);
