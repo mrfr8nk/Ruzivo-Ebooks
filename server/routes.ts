@@ -370,23 +370,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // File download endpoint - directly use Catbox URLs
+  // File proxy endpoint - masks Catbox URLs with custom domain
   app.get('/files/:fileId', async (req, res) => {
     try {
       const { fileId } = req.params;
       const catboxUrl = `https://files.catbox.moe/${fileId}`;
 
-      console.log('Redirecting to Catbox file:', fileId);
+      console.log('Proxying file download:', fileId);
 
-      // Simply redirect to the Catbox URL - browsers will handle the download
-      res.redirect(catboxUrl);
+      const axios = (await import('axios')).default;
+      const response = await axios.get(catboxUrl, {
+        responseType: 'stream',
+        timeout: 60000
+      });
+
+      // Get the original filename from the fileId or content-disposition header
+      const contentDisposition = response.headers['content-disposition'];
+      let filename = fileId;
+      if (contentDisposition && contentDisposition.includes('filename=')) {
+        filename = contentDisposition.split('filename=')[1].replace(/"/g, '');
+      }
+
+      // Set headers to force download with custom filename
+      res.setHeader('Content-Type', response.headers['content-type'] || 'application/octet-stream');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.setHeader('Content-Length', response.headers['content-length'] || '0');
+      res.setHeader('Cache-Control', 'public, max-age=31536000');
+
+      // Stream the file to the client
+      response.data.pipe(res);
 
     } catch (error) {
-      console.error('File redirect error:', error);
-      res.status(500).json({
-        error: 'File retrieval failed',
-        message: error instanceof Error ? error.message : 'Unknown error'
-      });
+      console.error('File proxy error:', error);
+      
+      if ((error as any).response && (error as any).response.status === 404) {
+        res.status(404).json({
+          error: 'File not found',
+          message: 'The requested file does not exist'
+        });
+      } else {
+        res.status(500).json({
+          error: 'File retrieval failed',
+          message: error instanceof Error ? error.message : 'Unknown error'
+        });
+      }
     }
   });
 
@@ -413,10 +440,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Return the direct Catbox URL for download
+      // Extract file ID from Catbox URL and return proxy URL with custom domain
+      const fileId = book.fileUrl.split('/').pop();
+      const proxyUrl = `${req.protocol}://${req.get('host')}/files/${fileId}`;
+
       res.json({
         success: true,
-        fileUrl: book.fileUrl,
+        fileUrl: proxyUrl,
         fileName: book.fileName
       });
     } catch (error) {
