@@ -75,7 +75,7 @@ export default function Developer() {
           </h1>
           
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
-            Full-Stack Developer & Creator of Ruzivo Ebooks Platform
+            Full-Stack Developer & Creator of MasterMinds Ebooks Platform
           </p>
           
           <div className="flex items-center justify-center gap-4">

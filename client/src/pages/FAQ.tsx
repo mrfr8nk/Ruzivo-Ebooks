@@ -38,7 +38,7 @@ export default function FAQ() {
     },
     {
       question: "Can I use this on my mobile phone?",
-      answer: "Absolutely! Ruzivo Ebooks is fully responsive and works great on smartphones, tablets, and computers. Download materials on any device."
+      answer: "Absolutely! MasterMinds Ebooks is fully responsive and works great on smartphones, tablets, and computers. Download materials on any device."
     },
     {
       question: "How can I support this platform?",
@@ -46,7 +46,7 @@ export default function FAQ() {
     },
     {
       question: "What if I find copyrighted material?",
-      answer: "We take copyright seriously. If you believe any material infringes on copyright, please contact us immediately at support@ruzivoebooks.com and we will investigate and take appropriate action."
+      answer: "We take copyright seriously. If you believe any material infringes on copyright, please contact us immediately at support@mastermindz.com and we will investigate and take appropriate action."
     },
     {
       question: "How do I report a problem or bug?",
@@ -65,7 +65,7 @@ export default function FAQ() {
             Frequently Asked Questions
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Find answers to common questions about Ruzivo Ebooks
+            Find answers to common questions about MasterMinds Ebooks
           </p>
         </div>
 

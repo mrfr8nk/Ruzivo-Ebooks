@@ -46,7 +46,7 @@ export default function Contact() {
             </div>
             <h3 className="font-semibold mb-2">Email</h3>
             <p className="text-sm text-muted-foreground" data-testid="text-email">
-              support@ruzivoebooks.com
+              support@mastermindz.com
             </p>
           </Card>
 

@@ -22,14 +22,14 @@ export default function TermsOfService() {
             <section className="mb-8">
               <h2 className="text-2xl font-bold mb-4">Acceptance of Terms</h2>
               <p className="text-muted-foreground">
-                By accessing and using Ruzivo Ebooks, you accept and agree to be bound by the terms and conditions of this agreement. If you do not agree to these terms, please do not use our platform.
+                By accessing and using MasterMinds Ebooks, you accept and agree to be bound by the terms and conditions of this agreement. If you do not agree to these terms, please do not use our platform.
               </p>
             </section>
 
             <section className="mb-8">
               <h2 className="text-2xl font-bold mb-4">Use of Service</h2>
               <div className="space-y-4 text-muted-foreground">
-                <p>You agree to use Ruzivo Ebooks only for lawful purposes and in accordance with these Terms. You agree not to:</p>
+                <p>You agree to use MasterMinds Ebooks only for lawful purposes and in accordance with these Terms. You agree not to:</p>
                 <ul className="list-disc list-inside space-y-2">
                   <li>Upload or share copyrighted materials without proper authorization</li>
                   <li>Use the platform to distribute malicious software or harmful content</li>
@@ -93,7 +93,7 @@ export default function TermsOfService() {
             <section>
               <h2 className="text-2xl font-bold mb-4">Contact Information</h2>
               <p className="text-muted-foreground">
-                For questions about these Terms of Service, please contact us at support@ruzivoebooks.com
+                For questions about these Terms of Service, please contact us at support@mastermindz.com
               </p>
             </section>
           </div>

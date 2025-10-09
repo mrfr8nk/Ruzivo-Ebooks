@@ -10,7 +10,7 @@ export default function Donations() {
             <Heart className="w-12 h-12 text-white" />
           </div>
           <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-sky-600 to-blue-600 bg-clip-text text-transparent">
-            Support Ruzivo Ebooks
+            Support MasterMinds Ebooks
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Help us keep this platform running and accessible to all ZIMSEC students
@@ -24,7 +24,7 @@ export default function Donations() {
           </h2>
           <div className="space-y-4 text-muted-foreground">
             <p>
-              Running Ruzivo Ebooks comes with various ongoing costs and challenges:
+              Running MasterMinds Ebooks comes with various ongoing costs and challenges:
             </p>
             <ul className="list-disc list-inside space-y-2 ml-4">
               <li>Server hosting and maintenance costs to keep the platform running 24/7</li>

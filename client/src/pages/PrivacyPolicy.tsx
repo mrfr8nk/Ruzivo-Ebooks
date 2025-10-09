@@ -22,7 +22,7 @@ export default function PrivacyPolicy() {
             <section className="mb-8">
               <h2 className="text-2xl font-bold mb-4">Introduction</h2>
               <p className="text-muted-foreground">
-                At Ruzivo Ebooks, we take your privacy seriously. This Privacy Policy explains how we collect, use, and protect your personal information when you use our platform.
+                At MasterMinds Ebooks, we take your privacy seriously. This Privacy Policy explains how we collect, use, and protect your personal information when you use our platform.
               </p>
             </section>
 
@@ -90,7 +90,7 @@ export default function PrivacyPolicy() {
             <section>
               <h2 className="text-2xl font-bold mb-4">Contact Us</h2>
               <p className="text-muted-foreground">
-                If you have any questions about this Privacy Policy, please contact us at support@ruzivoebooks.com
+                If you have any questions about this Privacy Policy, please contact us at support@mastermindz.com
               </p>
             </section>
           </div>
