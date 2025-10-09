@@ -53,14 +53,14 @@ export default function Home() {
       const tags = (book as any).tags || [];
       
       const matchesSearch = searchQuery === "" || 
-        book.title.toLowerCase().includes(searchLower) ||
-        book.author.toLowerCase().includes(searchLower) ||
+        book.title?.toLowerCase().includes(searchLower) ||
+        book.author?.toLowerCase().includes(searchLower) ||
         description.toLowerCase().includes(searchLower) ||
         book.curriculum?.toLowerCase().includes(searchLower) ||
-        book.level.toLowerCase().includes(searchLower) ||
-        book.form.toLowerCase().includes(searchLower) ||
+        book.level?.toLowerCase().includes(searchLower) ||
+        book.form?.toLowerCase().includes(searchLower) ||
         bookType.toLowerCase().includes(searchLower) ||
-        tags.some((tag: string) => tag.toLowerCase().includes(searchLower));
+        tags.some((tag: string) => tag?.toLowerCase().includes(searchLower));
 
       const matchesCurriculum = filterCurriculum === "all" || book.curriculum === filterCurriculum;
       const matchesLevel = filterLevel === "all" || book.level === filterLevel;
