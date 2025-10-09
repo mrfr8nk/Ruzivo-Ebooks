@@ -46,20 +46,25 @@ export default function Home() {
   const filteredAndSortedBooks = allBooks
     .filter(book => {
       const searchLower = searchQuery.toLowerCase().trim();
+      const bookType = (book as any).bookType || '';
+      const description = (book as any).description || '';
+      const tags = (book as any).tags || [];
+      
       const matchesSearch = searchQuery === "" || 
         book.title.toLowerCase().includes(searchLower) ||
         book.author.toLowerCase().includes(searchLower) ||
-        (book as any).description?.toLowerCase().includes(searchLower) ||
+        description.toLowerCase().includes(searchLower) ||
         book.curriculum?.toLowerCase().includes(searchLower) ||
         book.level.toLowerCase().includes(searchLower) ||
         book.form.toLowerCase().includes(searchLower) ||
-        ((book as any).tags || []).some((tag: string) => tag.toLowerCase().includes(searchLower));
+        bookType.toLowerCase().includes(searchLower) ||
+        tags.some((tag: string) => tag.toLowerCase().includes(searchLower));
 
       const matchesCurriculum = filterCurriculum === "all" || book.curriculum === filterCurriculum;
       const matchesLevel = filterLevel === "all" || book.level === filterLevel;
-      const matchesBookType = filterBookType === "all" || (book as any).bookType === filterBookType;
+      const matchesBookType = filterBookType === "all" || bookType === filterBookType;
 
-      const bookTags = (book as any).tags || [];
+      const bookTags = tags;
       const matchesTags = selectedTags.length === 0 || 
         selectedTags.some(tag => bookTags.includes(tag));
 
@@ -72,7 +77,7 @@ export default function Home() {
         case "oldest":
           return new Date(a.uploadedAt).getTime() - new Date(b.uploadedAt).getTime();
         case "downloads":
-          return b.downloads - a.downloads;
+          return (b.downloads || 0) - (a.downloads || 0);
         case "title":
           return a.title.localeCompare(b.title);
         default:
