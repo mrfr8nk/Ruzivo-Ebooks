@@ -158,6 +158,25 @@ export default function Home() {
             </Button>
           </div>
 
+          {/* Active search term display */}
+          {searchQuery && (
+            <div className="mb-4 flex items-center gap-2 animate-fade-in">
+              <span className="text-sm text-gray-600 dark:text-gray-400">Searching for:</span>
+              <Badge variant="secondary" className="gap-2">
+                <span className="font-medium">{searchQuery}</span>
+                <button 
+                  onClick={() => setSearchQuery('')}
+                  className="hover:bg-gray-300 dark:hover:bg-gray-600 rounded-full p-0.5"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </Badge>
+              <span className="text-sm text-gray-600 dark:text-gray-400">
+                ({filteredAndSortedBooks.length} {filteredAndSortedBooks.length === 1 ? 'result' : 'results'})
+              </span>
+            </div>
+          )}
+
           {showFilters && (
             <div className="space-y-6 animate-slide-in-down">
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
