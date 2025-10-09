@@ -67,7 +67,7 @@ export default function Navbar() {
             </div>
             <div className="flex flex-col">
               <span className="font-bold text-xl leading-none text-white group-hover:text-sky-200 transition-colors">MasterMinds Ebooks</span>
-              <span className="text-xs text-sky-300 leading-none">by Darrell Mucheri</span>
+              <span className="text-xs text-sky-300 leading-none font-['Pacifico'] italic">by Darrell Mucheri</span>
             </div>
           </Link>
 
