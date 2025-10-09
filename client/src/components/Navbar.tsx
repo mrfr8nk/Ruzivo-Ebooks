@@ -53,7 +53,15 @@ export default function Navbar() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      setLocation(`/search?q=${encodeURIComponent(searchQuery)}`);
+      // Navigate to home and scroll to search section
+      setLocation(`/?search=${encodeURIComponent(searchQuery)}`);
+      // Small delay to ensure navigation completes
+      setTimeout(() => {
+        const searchSection = document.getElementById('search-section');
+        if (searchSection) {
+          searchSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
     }
   };
 

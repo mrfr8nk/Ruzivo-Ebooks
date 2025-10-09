@@ -19,7 +19,11 @@ const RESOURCE_TYPE_TAGS = [
 ];
 
 export default function Home() {
-  const [searchQuery, setSearchQuery] = useState("");
+  // Get search query from URL if present
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlSearchQuery = urlParams.get('search') || '';
+  
+  const [searchQuery, setSearchQuery] = useState(urlSearchQuery);
   const [sortBy, setSortBy] = useState<string>("recent");
   const [filterCurriculum, setFilterCurriculum] = useState<string>("all");
   const [filterLevel, setFilterLevel] = useState<string>("all");
@@ -41,10 +45,15 @@ export default function Home() {
 
   const filteredAndSortedBooks = allBooks
     .filter(book => {
+      const searchLower = searchQuery.toLowerCase().trim();
       const matchesSearch = searchQuery === "" || 
-        book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        book.author.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (book as any).description?.toLowerCase().includes(searchQuery.toLowerCase());
+        book.title.toLowerCase().includes(searchLower) ||
+        book.author.toLowerCase().includes(searchLower) ||
+        (book as any).description?.toLowerCase().includes(searchLower) ||
+        book.curriculum?.toLowerCase().includes(searchLower) ||
+        book.level.toLowerCase().includes(searchLower) ||
+        book.form.toLowerCase().includes(searchLower) ||
+        ((book as any).tags || []).some((tag: string) => tag.toLowerCase().includes(searchLower));
 
       const matchesCurriculum = filterCurriculum === "all" || book.curriculum === filterCurriculum;
       const matchesLevel = filterLevel === "all" || book.level === filterLevel;
@@ -319,9 +328,9 @@ export default function Home() {
           </div>
         )}
 
-        {/* Trending Section */}
+        {/* Trending Section - Carousel */}
         {trendingBooks.length > 0 && (
-          <section className="mb-16 animate-fade-in">
+          <section className="mb-16 animate-fade-in overflow-hidden">
             <div className="mb-8">
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white flex items-center gap-3 mb-2" data-testid="heading-trending">
                 <div className="p-3 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl">
@@ -329,13 +338,41 @@ export default function Home() {
                 </div>
                 Trending This Week
               </h2>
-              <p className="text-muted-foreground">Most popular books among students right now</p>
+              <p className="text-muted-foreground">Most popular books among students right now - Swipe to explore</p>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {trendingBooks.map((book, index) => (
-                <div key={book._id} className="animate-scale-in" style={{ animationDelay: `${index * 100}ms` }}>
-                  <BookCard id={book._id!} {...book} isTrending />
-                </div>
+            
+            {/* Horizontal Scrolling Carousel */}
+            <div className="relative">
+              <div className="flex gap-6 overflow-x-auto pb-4 snap-x snap-mandatory scroll-smooth scrollbar-hide hover:scrollbar-default px-2">
+                {trendingBooks.map((book, index) => (
+                  <div 
+                    key={book._id} 
+                    className="flex-shrink-0 w-72 snap-center animate-scale-in hover:scale-105 transition-transform duration-300"
+                    style={{ animationDelay: `${index * 100}ms` }}
+                  >
+                    <div className="relative group">
+                      {/* Comic-style card with shadow effect */}
+                      <div className="absolute -inset-1 bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 rounded-2xl blur opacity-25 group-hover:opacity-75 transition duration-500"></div>
+                      <div className="relative">
+                        <BookCard id={book._id!} {...book} isTrending />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              {/* Gradient fade on edges */}
+              <div className="absolute left-0 top-0 bottom-4 w-20 bg-gradient-to-r from-sky-50 via-sky-50/50 to-transparent dark:from-gray-900 dark:via-gray-900/50 pointer-events-none"></div>
+              <div className="absolute right-0 top-0 bottom-4 w-20 bg-gradient-to-l from-sky-50 via-sky-50/50 to-transparent dark:from-gray-900 dark:via-gray-900/50 pointer-events-none"></div>
+            </div>
+            
+            {/* Scroll indicator */}
+            <div className="flex justify-center gap-2 mt-6">
+              {trendingBooks.slice(0, 8).map((_, index) => (
+                <div 
+                  key={index}
+                  className="w-2 h-2 rounded-full bg-orange-300 dark:bg-orange-600 opacity-50"
+                ></div>
               ))}
             </div>
           </section>

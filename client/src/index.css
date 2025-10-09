@@ -424,4 +424,30 @@
   .border.hover-elevate:not(.no-hover-interaction-elevate)::after {
     inset: -1px;
   }
+
+  /* Custom scrollbar for carousel */
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-default::-webkit-scrollbar {
+    height: 8px;
+  }
+
+  .scrollbar-default::-webkit-scrollbar-track {
+    @apply bg-sky-100 dark:bg-sky-900/30 rounded-full;
+  }
+
+  .scrollbar-default::-webkit-scrollbar-thumb {
+    @apply bg-sky-400 dark:bg-sky-600 rounded-full;
+  }
+
+  .scrollbar-default::-webkit-scrollbar-thumb:hover {
+    @apply bg-sky-500 dark:bg-sky-500;
+  }
 }
