@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Search, SlidersHorizontal, X, Filter, BookOpen, TrendingUp, Sparkles, Library, Tag } from "lucide-react";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import Autoplay from "embla-carousel-autoplay";
 import type { Book } from "@/lib/api";
 
 const SUBJECT_TAGS = [
@@ -333,9 +335,9 @@ export default function Home() {
           </div>
         )}
 
-        {/* Trending Section - Carousel */}
+        {/* Trending Section - Auto-scrolling Carousel */}
         {trendingBooks.length > 0 && (
-          <section className="mb-16 animate-fade-in overflow-hidden">
+          <section className="mb-16 animate-fade-in">
             <div className="mb-8">
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white flex items-center gap-3 mb-2" data-testid="heading-trending">
                 <div className="p-3 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl">
@@ -343,43 +345,44 @@ export default function Home() {
                 </div>
                 Trending This Week
               </h2>
-              <p className="text-muted-foreground">Most popular books among students right now - Swipe to explore</p>
+              <p className="text-muted-foreground">Most popular books among students right now - Auto-scrolling, swipe or use arrows</p>
             </div>
             
-            {/* Horizontal Scrolling Carousel */}
-            <div className="relative">
-              <div className="flex gap-6 overflow-x-auto pb-4 snap-x snap-mandatory scroll-smooth scrollbar-hide hover:scrollbar-default px-2">
+            <Carousel
+              opts={{
+                align: "start",
+                loop: true,
+              }}
+              plugins={[
+                Autoplay({
+                  delay: 3000,
+                  stopOnInteraction: true,
+                  stopOnMouseEnter: true,
+                })
+              ]}
+              className="w-full"
+            >
+              <CarouselContent className="-ml-4">
                 {trendingBooks.map((book, index) => (
-                  <div 
-                    key={book._id} 
-                    className="flex-shrink-0 w-72 snap-center animate-scale-in hover:scale-105 transition-transform duration-300"
-                    style={{ animationDelay: `${index * 100}ms` }}
-                  >
-                    <div className="relative group">
-                      {/* Comic-style card with shadow effect */}
-                      <div className="absolute -inset-1 bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 rounded-2xl blur opacity-25 group-hover:opacity-75 transition duration-500"></div>
-                      <div className="relative">
-                        <BookCard id={book._id!} {...book} isTrending />
+                  <CarouselItem key={book._id} className="pl-4 md:basis-1/2 lg:basis-1/3 xl:basis-1/4">
+                    <div 
+                      className="animate-scale-in hover:scale-105 transition-transform duration-300"
+                      style={{ animationDelay: `${index * 100}ms` }}
+                    >
+                      <div className="relative group">
+                        {/* Comic-style card with shadow effect */}
+                        <div className="absolute -inset-1 bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 rounded-2xl blur opacity-25 group-hover:opacity-75 transition duration-500"></div>
+                        <div className="relative">
+                          <BookCard id={book._id!} {...book} isTrending />
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  </CarouselItem>
                 ))}
-              </div>
-              
-              {/* Gradient fade on edges */}
-              <div className="absolute left-0 top-0 bottom-4 w-20 bg-gradient-to-r from-sky-50 via-sky-50/50 to-transparent dark:from-gray-900 dark:via-gray-900/50 pointer-events-none"></div>
-              <div className="absolute right-0 top-0 bottom-4 w-20 bg-gradient-to-l from-sky-50 via-sky-50/50 to-transparent dark:from-gray-900 dark:via-gray-900/50 pointer-events-none"></div>
-            </div>
-            
-            {/* Scroll indicator */}
-            <div className="flex justify-center gap-2 mt-6">
-              {trendingBooks.slice(0, 8).map((_, index) => (
-                <div 
-                  key={index}
-                  className="w-2 h-2 rounded-full bg-orange-300 dark:bg-orange-600 opacity-50"
-                ></div>
-              ))}
-            </div>
+              </CarouselContent>
+              <CarouselPrevious className="left-0 bg-white/90 dark:bg-gray-800/90 hover:bg-white dark:hover:bg-gray-800 border-2 border-orange-300 dark:border-orange-600" />
+              <CarouselNext className="right-0 bg-white/90 dark:bg-gray-800/90 hover:bg-white dark:hover:bg-gray-800 border-2 border-orange-300 dark:border-orange-600" />
+            </Carousel>
           </section>
         )}
 
