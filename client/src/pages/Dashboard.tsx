@@ -189,7 +189,7 @@ export default function Dashboard() {
             ) : (
               <div className="space-y-3 max-h-96 overflow-y-auto">
                 {myDownloads.map((download, index) => (
-                  <div 
+                  <div
                     key={index}
                     className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg hover-elevate border border-gray-200 dark:border-gray-700"
                   >
@@ -215,7 +215,7 @@ export default function Dashboard() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setLocation(`/`)}
+                      onClick={() => setLocation(`/books/${download.bookId}`)}
                       className="ml-2 flex-shrink-0"
                     >
                       View
@@ -265,6 +265,10 @@ export default function Dashboard() {
             )}
           </CardContent>
         </Card>
+        {/* Footer */}
+        <footer className="text-center mt-12 text-muted-foreground">
+          <p>&copy; {new Date().getFullYear()} Masterminds Ebooks. All rights reserved.</p>
+        </footer>
       </div>
     </div>
   );

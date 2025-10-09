@@ -47,7 +47,7 @@ const upload = multer({
 export async function registerRoutes(app: Express): Promise<Server> {
 
   // Student Authentication Routes
-  
+
   // Student Signup
   app.post('/api/auth/signup', async (req: AuthRequest, res) => {
     try {
@@ -77,9 +77,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       req.session.userId = user.id;
       req.session.username = user.username;
 
-      res.json({ 
-        success: true, 
-        user: { id: user.id, username: user.username } 
+      res.json({
+        success: true,
+        user: { id: user.id, username: user.username }
       });
     } catch (error) {
       console.error('Signup error:', error);
@@ -117,9 +117,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(500).json({ error: 'Failed to save session' });
         }
 
-        res.json({ 
-          success: true, 
-          user: { id: user.id, username: user.username } 
+        res.json({
+          success: true,
+          user: { id: user.id, username: user.username }
         });
       });
     } catch (error) {
@@ -140,9 +140,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (!req.session?.userId) {
       return res.status(401).json({ error: 'Not authenticated' });
     }
-    res.json({ 
-      id: req.session.userId, 
-      username: req.session.username 
+    res.json({
+      id: req.session.userId,
+      username: req.session.username
     });
   });
 
@@ -402,7 +402,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     } catch (error) {
       console.error('File proxy error:', error);
-      
+
       if ((error as any).response && (error as any).response.status === 404) {
         res.status(404).json({
           error: 'File not found',
@@ -440,13 +440,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Extract file ID from Catbox URL and return proxy URL with custom domain
-      const fileId = book.fileUrl.split('/').pop();
-      const proxyUrl = `${req.protocol}://${req.get('host')}/files/${fileId}`;
+      // Use original Catbox URL directly
+      const originalCatboxUrl = book.fileUrl;
 
       res.json({
         success: true,
-        fileUrl: proxyUrl,
+        fileUrl: originalCatboxUrl,
         fileName: book.fileName
       });
     } catch (error) {
@@ -465,10 +464,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .sort({ downloadedAt: -1 })
         .limit(50)
         .toArray();
-      
+
       res.json(downloads);
     } catch (error) {
       console.error('Get downloads error:', error);
+      res.status(500).json({ error: 'Failed to fetch downloads' });
+    }
+  });
+
+  // Get user's uploaded books
+  app.get('/api/books/my-uploads', async (req: AuthRequest, res) => {
+    if (!req.session?.userId) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+
+    try {
+      const books = await storage.getBooksByUsername(req.session.username!);
+      res.json(books);
+    } catch (error) {
+      console.error('Error fetching user uploads:', error);
+      res.status(500).json({ error: 'Failed to fetch uploads' });
+    }
+  });
+
+  // Get user's downloads
+  app.get('/api/user/downloads', async (req: AuthRequest, res) => {
+    if (!req.session?.userId) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+
+    try {
+      const { getDB } = await import('./mongodb');
+      const db = await getDB();
+      const downloads = await db.collection('user_downloads')
+        .find({ userId: req.session.userId })
+        .sort({ downloadedAt: -1 })
+        .toArray();
+      res.json(downloads);
+    } catch (error) {
+      console.error('Error fetching user downloads:', error);
       res.status(500).json({ error: 'Failed to fetch downloads' });
     }
   });

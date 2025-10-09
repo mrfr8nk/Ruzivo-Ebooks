@@ -1,4 +1,3 @@
-
 import { BookOpen, Mail, Github, Linkedin, Heart, ExternalLink, TrendingUp, Users, Download } from "lucide-react";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
@@ -39,7 +38,7 @@ export default function Footer() {
             <p className="text-sm text-gray-300 leading-relaxed mb-6">
               Empowering ZIMSEC students with accessible, high-quality educational resources for O-Level and A-Level success.
             </p>
-            
+
             {/* Social Links */}
             <div className="flex gap-3">
               {[
@@ -125,7 +124,7 @@ export default function Footer() {
                   {totalBooks}+
                 </div>
               </div>
-              
+
               <div className="p-4 bg-gradient-to-br from-blue-900/40 to-indigo-900/40 border border-blue-700/30 rounded-xl hover:border-blue-500/50 transition-all duration-300 group">
                 <div className="flex items-center gap-3 mb-2">
                   <Download className="w-5 h-5 text-blue-400 group-hover:scale-110 transition-transform" />
@@ -135,7 +134,7 @@ export default function Footer() {
                   {totalDownloads.toLocaleString()}+
                 </div>
               </div>
-              
+
               <div className="p-4 bg-gradient-to-br from-indigo-900/40 to-purple-900/40 border border-indigo-700/30 rounded-xl hover:border-indigo-500/50 transition-all duration-300 group">
                 <div className="flex items-center gap-3 mb-2">
                   <Users className="w-5 h-5 text-indigo-400 group-hover:scale-110 transition-transform" />
@@ -159,7 +158,7 @@ export default function Footer() {
               Made with <Heart className="w-4 h-4 text-red-400 animate-pulse" /> by Darrell Mucheri
             </p>
           </div>
-          
+
           <div className="flex items-center gap-2 text-sm text-gray-400">
             <TrendingUp className="w-4 h-4 text-green-400" />
             <span>Helping students excel since 2024</span>
