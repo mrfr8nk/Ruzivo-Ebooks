@@ -419,6 +419,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       await storage.incrementDownloads(req.params.id);
 
+      // Track download for logged-in users
+      if (req.session?.userId) {
+        const { getDB } = await import('./mongodb');
+        const db = await getDB();
+        await db.collection('user_downloads').insertOne({
+          userId: req.session.userId,
+          username: req.session.username,
+          bookId: req.params.id,
+          bookTitle: book.title,
+          downloadedAt: new Date()
+        });
+      }
+
       // Extract file ID from Catbox URL
       const fileId = book.fileUrl.split('/').pop();
       
@@ -433,6 +446,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Download increment error:', error);
       res.status(500).json({ error: 'Failed to process download' });
+    }
+  });
+
+  // Get user's download history
+  app.get('/api/auth/my-downloads', requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const { getDB } = await import('./mongodb');
+      const db = await getDB();
+      const downloads = await db.collection('user_downloads')
+        .find({ userId: req.session.userId })
+        .sort({ downloadedAt: -1 })
+        .limit(50)
+        .toArray();
+      
+      res.json(downloads);
+    } catch (error) {
+      console.error('Get downloads error:', error);
+      res.status(500).json({ error: 'Failed to fetch downloads' });
     }
   });
 

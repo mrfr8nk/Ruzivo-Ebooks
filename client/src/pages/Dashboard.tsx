@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { LogOut, Upload, User, BookOpen } from "lucide-react";
+import { LogOut, Upload, User, BookOpen, Download } from "lucide-react";
 import BookCard from "@/components/BookCard";
 import type { Book } from "@/lib/api";
 import { useQueryClient } from "@tanstack/react-query";
@@ -23,6 +23,12 @@ export default function Dashboard() {
   // Get user's books
   const { data: myBooks = [], isLoading: isLoadingBooks } = useQuery<Book[]>({
     queryKey: ['/api/auth/my-books'],
+    enabled: !!user,
+  });
+
+  // Get user's downloads
+  const { data: myDownloads = [], isLoading: isLoadingDownloads } = useQuery<any[]>({
+    queryKey: ['/api/auth/my-downloads'],
     enabled: !!user,
   });
 
@@ -154,6 +160,72 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         </div>
+
+        {/* My Downloads */}
+        <Card className="backdrop-blur-xl bg-white/90 dark:bg-gray-900/90 border-2 border-sky-200/50 dark:border-sky-700/50 mb-8">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-2xl font-bold flex items-center gap-2">
+                <Download className="w-6 h-6 text-sky-600 dark:text-sky-400" />
+                My Downloads
+              </CardTitle>
+              <Badge variant="outline" className="text-lg px-4 py-1">
+                {myDownloads.length} {myDownloads.length === 1 ? 'Download' : 'Downloads'}
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {isLoadingDownloads ? (
+              <div className="text-center py-12">
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-sky-200 border-t-sky-600 dark:border-sky-700 dark:border-t-sky-400"></div>
+                <p className="mt-4 text-muted-foreground">Loading your downloads...</p>
+              </div>
+            ) : myDownloads.length === 0 ? (
+              <div className="text-center py-12">
+                <Download className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                <p className="text-xl font-semibold text-muted-foreground mb-2">No downloads yet</p>
+                <p className="text-muted-foreground">Start exploring and downloading books</p>
+              </div>
+            ) : (
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                {myDownloads.map((download, index) => (
+                  <div 
+                    key={index}
+                    className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg hover-elevate border border-gray-200 dark:border-gray-700"
+                  >
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <div className="p-2 bg-sky-100 dark:bg-sky-900/30 rounded-lg">
+                        <BookOpen className="w-5 h-5 text-sky-600 dark:text-sky-400" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-gray-900 dark:text-white truncate">
+                          {download.bookTitle}
+                        </p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          {new Date(download.downloadedAt).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setLocation(`/`)}
+                      className="ml-2 flex-shrink-0"
+                    >
+                      View
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* My Books */}
         <Card className="backdrop-blur-xl bg-white/90 dark:bg-gray-900/90 border-2 border-sky-200/50 dark:border-sky-700/50">
