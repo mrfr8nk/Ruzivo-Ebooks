@@ -327,16 +327,27 @@ export default function Home() {
         </div>
 
         {searchQuery && (
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <p className="text-lg text-muted-foreground">
-              Search results for: <span className="font-semibold text-foreground">"{searchQuery}"</span>
-              {filteredAndSortedBooks.length > 0 ? ` (${filteredAndSortedBooks.length} found)` : ' (No results)'}
-            </p>
+          <div className="mb-8 backdrop-blur-xl bg-gradient-to-r from-sky-500/10 to-blue-500/10 rounded-2xl p-6 border-2 border-sky-300/50 dark:border-sky-600/50 shadow-lg animate-fade-in">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-sky-500 rounded-xl">
+                <Search className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                  Search Results for: <span className="text-sky-600 dark:text-sky-400">"{searchQuery}"</span>
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  {filteredAndSortedBooks.length > 0 
+                    ? `Found ${filteredAndSortedBooks.length} ${filteredAndSortedBooks.length === 1 ? 'book' : 'books'} matching your search` 
+                    : 'No books found. Try different search terms or clear filters.'}
+                </p>
+              </div>
+            </div>
           </div>
         )}
 
         {/* Trending Section - Auto-scrolling Carousel */}
-        {trendingBooks.length > 0 && (
+        {trendingBooks.length > 0 && !searchQuery && (
           <section className="mb-16 animate-fade-in">
             <div className="mb-8">
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white flex items-center gap-3 mb-2" data-testid="heading-trending">
@@ -387,7 +398,7 @@ export default function Home() {
         )}
 
         {/* You May Also Like Section */}
-        {allBooks.length > 0 && (
+        {allBooks.length > 0 && !searchQuery && (
           <section className="mb-16 animate-fade-in">
             <div className="mb-8">
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white flex items-center gap-3 mb-2">
@@ -417,7 +428,7 @@ export default function Home() {
                   <div className="p-3 bg-gradient-to-br from-sky-500 to-blue-500 rounded-xl">
                     <Library className="w-7 h-7 text-white" />
                   </div>
-                  Complete Library
+                  {searchQuery ? 'Search Results' : 'Complete Library'}
                   <span className="text-2xl font-semibold text-sky-600 dark:text-sky-400">
                     ({filteredAndSortedBooks.length})
                   </span>
