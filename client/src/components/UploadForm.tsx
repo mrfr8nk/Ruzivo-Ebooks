@@ -48,9 +48,21 @@ export default function UploadForm() {
   });
 
   // Check if user is authenticated
-  const { data: user } = useQuery({
+  const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ['/api/auth/me'],
   });
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!userLoading && !user) {
+      toast({
+        title: "Authentication required",
+        description: "Please login to upload books",
+        variant: "destructive",
+      });
+      setLocation('/login');
+    }
+  }, [user, userLoading, setLocation, toast]);
 
   const toggleTag = (tag: string) => {
     setSelectedTags(prev =>

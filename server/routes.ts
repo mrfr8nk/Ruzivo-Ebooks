@@ -166,17 +166,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Upload a new book (authentication optional but credited if logged in)
-  app.post('/api/books/upload', upload.single('file'), async (req: AuthRequest, res) => {
+  // Upload a new book (authentication required)
+  app.post('/api/books/upload', requireAuth, upload.single('file'), async (req: AuthRequest, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ error: 'No file uploaded' });
       }
 
-      // Get username from session, ensure it's properly set
-      const uploadedBy = req.session?.userId && req.session?.username 
-        ? req.session.username 
-        : 'Anonymous';
+      // User must be logged in (enforced by requireAuth middleware)
+      const uploadedBy = req.session.username!;
 
       console.log('Upload session check:', {
         hasSession: !!req.session,
