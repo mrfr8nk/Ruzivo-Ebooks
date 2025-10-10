@@ -166,12 +166,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Upload a new book (no authentication required)
+  // Upload a new book (authentication optional but credited if logged in)
   app.post('/api/books/upload', upload.single('file'), async (req: AuthRequest, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ error: 'No file uploaded' });
       }
+
+      // Get username from session, ensure it's properly set
+      const uploadedBy = req.session?.userId && req.session?.username 
+        ? req.session.username 
+        : 'Anonymous';
+
+      console.log('Upload session check:', {
+        hasSession: !!req.session,
+        userId: req.session?.userId,
+        username: req.session?.username,
+        uploadedBy
+      });
 
       const bookData = {
         title: req.body.title,
@@ -185,7 +197,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         description: req.body.description || undefined,
         tags: req.body.tags ? JSON.parse(req.body.tags) : [],
         coverUrl: req.body.coverUrl || undefined,
-        uploadedBy: req.session.username || 'Anonymous', // Use authenticated user's username or Anonymous
+        uploadedBy: uploadedBy,
       };
 
       const validation = insertBookSchema.safeParse(bookData);

@@ -25,6 +25,7 @@ export async function uploadBook(formData: FormData): Promise<Book> {
   const response = await fetch('/api/books/upload', {
     method: 'POST',
     body: formData,
+    credentials: 'include', // Include session cookies
   });
 
   if (!response.ok) {
