@@ -1,4 +1,5 @@
 import express, { type Request, Response, NextFunction } from "express";
+import cors from "cors";
 import cookieParser from "cookie-parser";
 import session from "express-session";
 import createMemoryStore from "memorystore";
@@ -6,6 +7,15 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
+
+// CORS configuration for production deployments
+const corsOptions = {
+  origin: process.env.FRONTEND_URL || true,
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+app.use(cors(corsOptions));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
@@ -24,7 +34,8 @@ app.use(
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      domain: process.env.COOKIE_DOMAIN || undefined,
     },
   })
 );
