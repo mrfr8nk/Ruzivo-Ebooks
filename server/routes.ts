@@ -495,26 +495,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get user's downloads
-  app.get('/api/user/downloads', async (req: AuthRequest, res) => {
-    if (!req.session?.userId) {
-      return res.status(401).json({ error: 'Not authenticated' });
-    }
-
-    try {
-      const { getDB } = await import('./mongodb');
-      const db = await getDB();
-      const downloads = await db.collection('user_downloads')
-        .find({ userId: req.session.userId })
-        .sort({ downloadedAt: -1 })
-        .toArray();
-      res.json(downloads);
-    } catch (error) {
-      console.error('Error fetching user downloads:', error);
-      res.status(500).json({ error: 'Failed to fetch downloads' });
-    }
-  });
-
   const httpServer = createServer(app);
 
   return httpServer;

@@ -8,6 +8,30 @@ MasterMinds Ebooks is an educational platform designed to provide ZIMSEC (Zimbab
 
 Preferred communication style: Simple, everyday language.
 
+## Recent Changes (October 10, 2025)
+
+### User Experience Improvements
+1. **Upload Attribution Fixed**: 
+   - Resolved issue where books uploaded by logged-in users showed "Anonymous" as the uploader
+   - Fixed session persistence in signup flow by adding session save callback
+   - Now properly tracks and displays the actual username of uploaders
+
+2. **Enhanced Search Results Display**:
+   - Search results now show in a prominent highlighted banner with clear visual feedback
+   - Hides "Trending" and "Recommended" sections when actively searching to focus on results
+   - Dynamic heading changes from "Complete Library" to "Search Results" during active search
+   - Shows helpful message when no results found with suggestion to try different terms
+
+3. **User Downloads Tracking**:
+   - Confirmed full functionality of download tracking system
+   - Downloads are tracked per user in `user_downloads` MongoDB collection
+   - User's download history displayed in Dashboard with timestamps and quick actions
+   - Accessible via `/api/auth/my-downloads` endpoint
+
+### Code Cleanup
+- Removed duplicate `/api/user/downloads` route (unused)
+- Maintained single source of truth with `/api/auth/my-downloads`
+
 ## System Architecture
 
 ### Frontend Architecture
