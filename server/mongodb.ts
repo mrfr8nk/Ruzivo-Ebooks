@@ -2,7 +2,7 @@
 import { MongoClient, Db, ObjectId } from 'mongodb';
 import type { BookMetadata } from '@shared/schema';
 
-const MONGODB_URI = 'mongodb+srv://darexmucheri:cMd7EoTwGglJGXwR@cluster0.uwf6z.mongodb.net/ebooks?retryWrites=true&w=majority&appName=Cluster0';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://darexmucheri:cMd7EoTwGglJGXwR@cluster0.uwf6z.mongodb.net/ebooks?retryWrites=true&w=majority&appName=Cluster0';
 
 let client: MongoClient;
 let db: Db;

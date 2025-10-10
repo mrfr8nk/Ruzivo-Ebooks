@@ -5,8 +5,8 @@ import jwt from 'jsonwebtoken';
 import { getDB } from './mongodb';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
-const ADMIN_USERNAME = 'mrfrankofc';
-const ADMIN_PASSWORD_HASH = bcrypt.hashSync('darex123', 10);
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'mrfrankofc';
+const ADMIN_PASSWORD_HASH = process.env.ADMIN_PASSWORD ? bcrypt.hashSync(process.env.ADMIN_PASSWORD, 10) : bcrypt.hashSync('darex123', 10);
 
 export interface AuthRequest extends Request {
   adminId?: string;
