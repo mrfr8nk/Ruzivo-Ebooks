@@ -8,6 +8,9 @@ import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
 
+// Trust proxy - required for secure cookies behind Replit/Render/etc proxies
+app.set('trust proxy', 1);
+
 // CORS configuration for production deployments
 const corsOptions = {
   origin: process.env.FRONTEND_URL || true,
@@ -22,6 +25,16 @@ app.use(cookieParser());
 
 // Session middleware for student authentication
 const MemoryStore = createMemoryStore(session);
+
+// Determine cookie settings based on environment
+// Replit: HTTPS + same-origin → secure: true, sameSite: 'lax'
+// Production: 
+//   - Same-origin (default) → secure: true, sameSite: 'lax'
+//   - Cross-origin (FRONTEND_URL set) → secure: true, sameSite: 'none'
+const isProduction = process.env.NODE_ENV === 'production';
+const isReplit = process.env.REPL_ID !== undefined;
+const isCrossOrigin = process.env.FRONTEND_URL && process.env.FRONTEND_URL !== 'true';
+
 app.use(
   session({
     secret: process.env.SESSION_SECRET || 'ruzivo-ebooks-secret-key-change-in-production',
@@ -33,8 +46,8 @@ app.use(
     cookie: {
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      secure: isReplit || isProduction,
+      sameSite: (isProduction && isCrossOrigin) ? 'none' : 'lax',
       domain: process.env.COOKIE_DOMAIN || undefined,
     },
   })
