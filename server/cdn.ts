@@ -1,7 +1,7 @@
 import axios from 'axios';
 import FormData from 'form-data';
 
-const CATBOX_USERHASH = 'dced0dfdd838c6d7e3f67b0b9';
+const CATBOX_USERHASH = process.env.CATBOX_USERHASH || '61101e1ef85d3a146d5841cee';
 const CATBOX_API_URL = 'https://catbox.moe/user/api.php';
 
 interface MulterFile {
