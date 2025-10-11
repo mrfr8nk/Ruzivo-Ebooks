@@ -23,5 +23,5 @@ services:
       - key: JWT_SECRET
         generateValue: true
       - key: CATBOX_USERHASH
-        sync: false
+        value: 61101e1ef85d3a146d5841cee
     autoDeploy: true
