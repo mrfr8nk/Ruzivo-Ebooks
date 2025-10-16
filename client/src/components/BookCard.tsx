@@ -93,7 +93,7 @@ export default function BookCard({ id, title, author, level, form, coverUrl, dow
         ) : (
           <div className="w-full h-full flex items-center justify-center p-6">
             <img
-              src="https://cdn.mrfrankofc.gleeze.com/pdf_image.png"
+              src="https://dabby.vercel.app/pdf_icon.png"
               alt={title}
               className={`w-full h-full object-contain transition-all duration-500 ${isHovered ? 'scale-110' : ''}`}
             />
