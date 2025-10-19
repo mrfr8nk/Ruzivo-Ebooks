@@ -89,16 +89,20 @@ export default function BookCard({ id, title, author, level, form, coverUrl, dow
             src={coverUrl}
             alt={title}
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+            onError={(e) => {
+              e.currentTarget.style.display = 'none';
+              const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+              if (fallback) fallback.style.display = 'flex';
+            }}
           />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center p-6">
-            <img
-              src="https://dabby.vercel.app/pdf_icon.png"
-              alt={title}
-              className={`w-full h-full object-contain transition-all duration-500 ${isHovered ? 'scale-110' : ''}`}
-            />
-          </div>
-        )}
+        ) : null}
+        <div className={`w-full h-full flex items-center justify-center p-6 ${coverUrl ? 'hidden' : ''}`}>
+          <img
+            src="https://dabby.vercel.app/pdf_icon.png"
+            alt={title}
+            className={`w-full h-full object-contain transition-all duration-500 ${isHovered ? 'scale-110' : ''}`}
+          />
+        </div>
 
         {/* Overlay on hover */}
         <div className={`absolute inset-0 bg-gradient-to-t from-sky-900/90 via-sky-900/50 to-transparent transition-opacity duration-300 ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
@@ -217,12 +221,24 @@ export default function BookCard({ id, title, author, level, form, coverUrl, dow
           <div className="space-y-4">
             <div className="flex gap-4">
               {coverUrl ? (
-                <img src={coverUrl} alt={title} className="w-32 h-48 object-cover rounded-lg" />
-              ) : (
-                <div className="w-32 h-48 bg-gradient-to-br from-sky-100 to-blue-100 rounded-lg flex items-center justify-center">
-                  <BookOpen className="w-12 h-12 text-sky-600" />
-                </div>
-              )}
+                <img 
+                  src={coverUrl} 
+                  alt={title} 
+                  className="w-32 h-48 object-cover rounded-lg" 
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                    const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                    if (fallback) fallback.style.display = 'flex';
+                  }}
+                />
+              ) : null}
+              <div className={`w-32 h-48 bg-gradient-to-br from-sky-100 to-blue-100 rounded-lg flex items-center justify-center p-4 ${coverUrl ? 'hidden' : ''}`}>
+                <img 
+                  src="https://dabby.vercel.app/pdf_icon.png" 
+                  alt={title}
+                  className="w-full h-full object-contain"
+                />
+              </div>
               <div className="flex-1 space-y-2">
                 <p className="text-sm text-muted-foreground">Author: <span className="font-semibold">{author}</span></p>
                 {curriculum && <p className="text-sm text-muted-foreground">Curriculum: <span className="font-semibold">{curriculum}</span></p>}
