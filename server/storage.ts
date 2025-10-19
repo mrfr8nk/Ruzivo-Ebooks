@@ -23,6 +23,13 @@ export interface IStorage {
   getAllUsersWithUploads(): Promise<Array<{ username: string; uploadCount: number; books: BookMetadata[] }>>;
 }
 
+function sanitizeCoverUrl(coverUrl?: string): string {
+  if (!coverUrl || coverUrl.includes('cdn.mrfrankofc.gleeze.com')) {
+    return 'https://dabby.vercel.app/pdf_icon.png';
+  }
+  return coverUrl;
+}
+
 export class MongoDBStorage implements IStorage {
   async getUser(id: string): Promise<User | undefined> {
     const db = await getDB();
@@ -61,14 +68,22 @@ export class MongoDBStorage implements IStorage {
       .find({})
       .sort({ uploadedAt: -1 })
       .toArray();
-    return books.map(book => ({ ...book, _id: book._id.toString() })) as BookMetadata[];
+    return books.map(book => ({ 
+      ...book, 
+      _id: book._id.toString(),
+      coverUrl: sanitizeCoverUrl(book.coverUrl)
+    })) as BookMetadata[];
   }
 
   async getBookById(id: string): Promise<BookMetadata | undefined> {
     const db = await getDB();
     const book = await db.collection('books').findOne({ _id: new ObjectId(id) });
     if (!book) return undefined;
-    return { ...book, _id: book._id.toString() } as BookMetadata;
+    return { 
+      ...book, 
+      _id: book._id.toString(),
+      coverUrl: sanitizeCoverUrl(book.coverUrl)
+    } as BookMetadata;
   }
 
   async incrementDownloads(id: string): Promise<void> {
@@ -96,7 +111,11 @@ export class MongoDBStorage implements IStorage {
       .find({ level })
       .sort({ uploadedAt: -1 })
       .toArray();
-    return books.map(book => ({ ...book, _id: book._id.toString() })) as BookMetadata[];
+    return books.map(book => ({ 
+      ...book, 
+      _id: book._id.toString(),
+      coverUrl: sanitizeCoverUrl(book.coverUrl)
+    })) as BookMetadata[];
   }
 
   async getTrendingBooks(limit: number = 8): Promise<BookMetadata[]> {
@@ -109,7 +128,11 @@ export class MongoDBStorage implements IStorage {
       .sort({ downloads: -1 })
       .limit(limit)
       .toArray();
-    return books.map(book => ({ ...book, _id: book._id.toString() })) as BookMetadata[];
+    return books.map(book => ({ 
+      ...book, 
+      _id: book._id.toString(),
+      coverUrl: sanitizeCoverUrl(book.coverUrl)
+    })) as BookMetadata[];
   }
 
   async getMostDownloadedBooks(limit: number = 8): Promise<BookMetadata[]> {
@@ -119,7 +142,11 @@ export class MongoDBStorage implements IStorage {
       .sort({ downloads: -1 })
       .limit(limit)
       .toArray();
-    return books.map(book => ({ ...book, _id: book._id.toString() })) as BookMetadata[];
+    return books.map(book => ({ 
+      ...book, 
+      _id: book._id.toString(),
+      coverUrl: sanitizeCoverUrl(book.coverUrl)
+    })) as BookMetadata[];
   }
 
   async getBooksByUsername(username: string): Promise<BookMetadata[]> {
@@ -128,7 +155,11 @@ export class MongoDBStorage implements IStorage {
       .find({ uploadedBy: username })
       .sort({ uploadedAt: -1 })
       .toArray();
-    return books.map(book => ({ ...book, _id: book._id.toString() })) as BookMetadata[];
+    return books.map(book => ({ 
+      ...book, 
+      _id: book._id.toString(),
+      coverUrl: sanitizeCoverUrl(book.coverUrl)
+    })) as BookMetadata[];
   }
 
   async getTopUploaders(limit: number = 10): Promise<Array<{ username: string; uploadCount: number }>> {
