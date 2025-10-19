@@ -223,7 +223,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } catch (error) {
           console.error('Thumbnail generation failed:', error);
           // Use fallback PDF image
-          coverUrl = 'https://cdn.mrfrankofc.gleeze.com/pdf_image.png';
+          coverUrl = 'https://dabby.vercel.app/pdf_icon.png';
         }
       }
 
