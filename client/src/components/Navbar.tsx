@@ -71,7 +71,7 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-20 gap-4">
           <Link href="/" className="flex items-center gap-3 hover-elevate rounded-xl px-4 py-2 transition-all duration-300 hover:bg-white/10 group" data-testid="link-home">
             <div className="p-1 rounded-lg bg-white group-hover:scale-110 transition-transform duration-300">
-              <img src="https://db.mrfrankofc.gleeze.com/file/fkxpvo.png" alt="MasterMinds Logo" className="w-8 h-8 object-contain" />
+              <img src="https://dabby.vercel.app/mbooks.jpg" alt="MasterMinds Logo" className="w-8 h-8 object-contain" />
             </div>
             <div className="flex flex-col">
               <span className="font-bold text-xl leading-none text-white group-hover:text-sky-200 transition-colors">MasterMinds Ebooks</span>
